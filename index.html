@@ -1,0 +1,1714 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>탠코 내부 대시보드 2026</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root{
+  --bg:#f5f0e8;--surface:#fff;--surface2:#faf7f2;--border:#ddd7cd;
+  --text:#2d2a25;--text2:#6b6560;--text3:#9a948e;
+  --amber:#c47b2e;--al:#fff0d8;--ab:#f0c080;
+  --teal:#2b7a6e;--tl:#e0f0ed;
+  --red:#c0392b;--rl:#fde8e6;
+  --green:#27ae60;--gl:#e6f4ec;
+  --blue:#2c6fad;--bl:#e8f1f9;
+  --gray:#95928d;--gray-l:#f0ece6;
+  --purple:#7a4faf;--pl:#f0e8ff;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Apple SD Gothic Neo','Noto Sans KR',-apple-system,sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+
+/* NOTICE */
+.notice{background:#fff8e8;border-bottom:1px solid var(--ab);color:var(--amber);text-align:center;padding:7px 20px;font-size:12px;font-weight:500}
+
+/* HEADER */
+.hdr{background:var(--surface);border-bottom:1px solid var(--border);padding:12px 20px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.logo{width:36px;height:36px;background:linear-gradient(135deg,#c47b2e,#e8a040);border-radius:9px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:13px;flex-shrink:0}
+.hdr-info h1{font-size:15px;font-weight:700}
+.hdr-info p{font-size:11px;color:var(--text3);margin-top:1px}
+.hdr-right{margin-left:auto;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.member-badge{background:var(--al);border:1px solid var(--ab);color:var(--amber);border-radius:20px;padding:4px 10px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap}
+.member-badge:hover{background:var(--ab)}
+.sync-dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:3px}
+.sync-ok .sync-dot{background:var(--green)}
+.sync-wait .sync-dot{background:var(--amber)}
+.sync-off .sync-dot{background:var(--gray)}
+.sync-err .sync-dot{background:var(--red)}
+.sync-label{font-size:10px;color:var(--text3)}
+.btn-icon{background:var(--surface2);border:1px solid var(--border);border-radius:7px;padding:5px 9px;font-size:13px;cursor:pointer;transition:background .15s}
+.btn-icon:hover{background:var(--al)}
+
+/* NAV */
+.nav{background:var(--surface);border-bottom:1px solid var(--border);display:flex;overflow-x:auto;padding:0 12px;gap:2px;position:sticky;top:0;z-index:100}
+.nav::-webkit-scrollbar{height:3px}
+.nav::-webkit-scrollbar-thumb{background:var(--ab)}
+.tb{display:flex;align-items:center;gap:4px;padding:11px 12px;font-size:13px;font-weight:600;color:var(--text3);border:none;background:none;cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;transition:color .2s,border-color .2s;min-height:44px}
+.tb:hover{color:var(--amber)}
+.tb.on{color:var(--amber);border-bottom-color:var(--amber)}
+
+/* PANELS */
+.panel{display:none;max-width:1200px;margin:0 auto;padding:20px 16px 80px}
+.panel.on{display:block}
+
+/* LAYOUT */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:20px}
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px}
+.mb{margin-bottom:20px}
+
+/* CARDS */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px}
+.card-t{font-size:13px;font-weight:700;color:var(--text);margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.ci{width:24px;height:24px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0}
+.ci-a{background:var(--al)}.ci-t{background:var(--tl)}.ci-b{background:var(--bl)}.ci-g{background:var(--gl)}
+
+/* KPI CARDS */
+.kc{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px}
+.kc.hl{background:linear-gradient(135deg,#fdf6ee,#fffbf5);border-color:var(--ab)}
+.kl{font-size:10px;color:var(--text3);font-weight:600;letter-spacing:.5px;margin-bottom:6px}
+.kv{font-size:22px;font-weight:700;letter-spacing:-.8px;line-height:1;margin-bottom:4px}
+.kc.hl .kv{color:var(--amber)}
+.ku{font-size:12px;font-weight:500}
+.ks{font-size:11px;color:var(--text2)}
+
+/* CHART */
+.ch-wrap{position:relative;height:200px}
+
+/* SCENARIO */
+.sci{margin-bottom:14px}
+.sch{display:flex;justify-content:space-between;margin-bottom:5px;font-size:12px}
+.scl{font-weight:600}.sct{color:var(--text3)}
+.bar-bg{height:8px;background:var(--gray-l);border-radius:4px;overflow:hidden}
+.bar-f{height:100%;border-radius:4px}
+.bf-g{background:linear-gradient(90deg,var(--green),#40c878)}
+.bf-a{background:linear-gradient(90deg,var(--amber),#e8a040)}
+.bf-b{background:linear-gradient(90deg,var(--blue),#4a9adb)}
+.sc-n{font-size:10px;color:var(--text3);text-align:right;margin-top:3px}
+
+/* PRODUCT HERO */
+.prod-hero{background:linear-gradient(135deg,var(--surface),var(--surface2));border:1px solid var(--border);border-radius:14px;padding:20px;display:grid;grid-template-columns:1fr auto;gap:18px;align-items:start;margin-bottom:18px}
+.pn{font-size:19px;font-weight:800;margin-bottom:5px}
+.pd{font-size:13px;color:var(--text2);line-height:1.7}
+.pstats{display:flex;gap:18px;margin-top:12px;flex-wrap:wrap}
+.ps{text-align:center}
+.pv{font-size:17px;font-weight:700;color:var(--amber)}
+.pl{font-size:10px;color:var(--text3);font-weight:600;margin-top:2px}
+.psb{display:inline-flex;align-items:center;gap:5px;padding:7px 14px;border-radius:20px;font-size:12px;font-weight:700}
+.psb-on{background:var(--gl);color:var(--green);border:1px solid #b0dec0}
+.psb-plan{background:var(--al);color:var(--amber);border:1px solid var(--ab)}
+
+/* TASK LIST */
+.tlist{list-style:none}
+.ti{display:flex;align-items:flex-start;gap:10px;padding:10px 8px;border-radius:7px;cursor:pointer;border-bottom:1px solid #f5f0e8;transition:background .15s;user-select:none;min-height:44px}
+.ti:last-child{border-bottom:none}
+.ti:hover{background:var(--surface2)}
+.tck{width:22px;height:22px;border-radius:5px;border:2px solid var(--border);background:var(--surface);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;font-size:11px;transition:all .2s}
+.ti.done .tck{background:var(--green);border-color:var(--green);color:#fff}
+.ti.done .tt strong{text-decoration:line-through;color:var(--text3)}
+.tt strong{font-size:13px;font-weight:600;display:block;margin-bottom:2px}
+.tt span{font-size:11px;color:var(--text3)}
+.tdl{font-size:10px;padding:2px 7px;border-radius:8px;font-weight:600;white-space:nowrap;margin-left:auto;flex-shrink:0;align-self:flex-start;margin-top:3px}
+.dl-r{background:var(--rl);color:var(--red)}
+.dl-a{background:var(--al);color:var(--amber)}
+.dl-b{background:var(--bl);color:var(--blue)}
+.dl-g{background:var(--gl);color:var(--green)}
+.dl-n{background:var(--gray-l);color:var(--gray)}
+
+/* OKR */
+.obj{background:var(--surface);border:1px solid var(--border);border-radius:12px;margin-bottom:12px;overflow:hidden}
+.obj-hd{padding:14px 16px;display:flex;align-items:center;gap:12px;cursor:pointer;user-select:none;transition:background .15s;min-height:48px}
+.obj-hd:hover{background:var(--surface2)}
+.on-num{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:12px;color:#fff;flex-shrink:0}
+.obj-inf{flex:1}
+.obj-tit{font-size:14px;font-weight:700;margin-bottom:2px}
+.obj-pt{font-size:11px;color:var(--text3)}
+.pbar-s{width:60px;height:6px;background:var(--gray-l);border-radius:3px;overflow:hidden;flex-shrink:0}
+.pbar-sf{height:100%;border-radius:3px;transition:width .4s}
+.exp{font-size:12px;color:var(--text3);transition:transform .25s;flex-shrink:0}
+.exp.open{transform:rotate(90deg)}
+.krs{padding:0 16px 12px;display:none}
+.krs.open{display:block}
+.kri{display:flex;align-items:flex-start;gap:10px;padding:10px 8px;border-radius:7px;cursor:pointer;border-bottom:1px solid #f5f0e8;transition:background .15s;user-select:none;min-height:44px}
+.kri:last-child{border-bottom:none}
+.kri:hover{background:var(--surface2)}
+.kck{width:22px;height:22px;border-radius:50%;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0;margin-top:1px;transition:all .2s}
+.kri.done .kck{background:var(--green);border-color:var(--green);color:#fff}
+.kri.done .kl2{text-decoration:line-through;color:var(--text3)}
+.kri.fail .kck{background:var(--red);border-color:var(--red);color:#fff}
+.kri.fail .kl2{text-decoration:line-through;color:var(--text3)}
+.kl2{font-size:13px;flex:1;line-height:1.5}
+.km{font-size:10px;color:var(--text3);white-space:nowrap}
+.kr-comment{font-size:10px;color:var(--blue);margin-top:3px;font-style:italic}
+
+/* KPI TRACKER */
+.kpt-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px}
+.kpt-name{font-size:12px;font-weight:700;color:var(--text);margin-bottom:8px;line-height:1.4}
+.kpt-pbar{height:5px;background:var(--gray-l);border-radius:3px;overflow:hidden;margin:10px 0}
+.kpt-pbf{height:100%;border-radius:3px;transition:width .3s}
+.kpt-tog{width:100%;padding:8px;border-radius:8px;border:none;font-size:12px;font-weight:700;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:5px;min-height:40px}
+.s0{background:var(--rl);color:var(--red)}
+.s1{background:var(--al);color:var(--amber)}
+.s2{background:var(--gl);color:var(--green)}
+
+/* TABLE */
+.tbl{width:100%;border-collapse:collapse;font-size:12px}
+.tbl th{text-align:left;color:var(--text3);font-weight:600;font-size:10px;letter-spacing:.5px;padding:5px 8px;border-bottom:1px solid var(--border)}
+.tbl td{padding:8px;border-bottom:1px solid #f0ece6;vertical-align:middle}
+.tbl tr:last-child td{border-bottom:none}
+.tbl tr:hover td{background:var(--surface2)}
+
+/* STATUS PILLS */
+.sp{display:inline-block;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:600;white-space:nowrap}
+.sp-on{background:var(--gl);color:var(--green)}
+.sp-act{background:var(--al);color:var(--amber)}
+.sp-plan{background:var(--bl);color:var(--blue)}
+.sp-hold{background:var(--gray-l);color:var(--gray)}
+.sp-oct{background:var(--pl);color:var(--purple)}
+.sp-fail{background:var(--rl);color:var(--red)}
+
+/* INFO BOX */
+.ibox{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 14px;font-size:12px;color:var(--text2);margin:8px 0;line-height:1.6}
+.ibox.a{background:var(--al);border-color:var(--ab);color:#8b5a1a}
+.ibox.g{background:var(--gl);border-color:#b0dec0;color:#1a6e3a}
+.ibox.r{background:var(--rl);border-color:#f0b8b4;color:#8b2020}
+
+/* BUTTONS */
+.btn-reset{background:var(--gray-l);color:var(--gray);border:1px solid var(--border);border-radius:8px;padding:6px 14px;font-size:12px;font-weight:600;cursor:pointer;transition:all .2s}
+.btn-reset:hover{background:var(--rl);color:var(--red);border-color:#f0b8b4}
+.btn-small{background:var(--surface2);color:var(--text2);border:1px solid var(--border);border-radius:6px;padding:4px 10px;font-size:11px;font-weight:600;cursor:pointer}
+.btn-small:hover{background:var(--al);color:var(--amber)}
+.btn-primary{background:var(--amber);color:#fff;border:none;border-radius:8px;padding:10px 22px;font-size:14px;font-weight:700;cursor:pointer;transition:opacity .2s}
+.btn-primary:hover{opacity:.88}
+
+/* SECTION TITLE */
+.st{font-size:12px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:1px;margin-bottom:14px;padding-bottom:8px;border-bottom:1px solid var(--border)}
+
+/* ROADMAP */
+.rm-g{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:20px}
+.rm-c{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px;position:relative}
+.rm-c.now{border-color:var(--amber);background:#fffbf5}
+.rm-nb{position:absolute;top:-8px;left:50%;transform:translateX(-50%);background:var(--amber);color:#fff;font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;white-space:nowrap}
+.rm-y{font-size:17px;font-weight:800;color:var(--text3);margin-bottom:2px}
+.rm-c.now .rm-y{color:var(--amber)}
+.rm-p{font-size:11px;font-weight:700;margin-bottom:6px}
+.rm-i{font-size:11px;color:var(--text2);line-height:1.7}
+
+/* PROGRESS SUMMARY BAR */
+.prog-sum{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 16px;display:flex;align-items:center;gap:14px;margin-bottom:14px;flex-wrap:wrap}
+.prog-label{font-size:12px;font-weight:700;color:var(--text);min-width:100px}
+.prog-bar-bg{flex:1;min-width:80px;height:10px;background:var(--gray-l);border-radius:5px;overflow:hidden}
+.prog-bar-f{height:100%;border-radius:5px;background:linear-gradient(90deg,var(--green),#40c878);transition:width .5s}
+.prog-pct{font-size:13px;font-weight:700;color:var(--green);min-width:38px;text-align:right}
+
+/* MONTHLY SALES */
+.sales-grid{width:100%;border-collapse:collapse;font-size:12px;margin-bottom:12px}
+.sales-grid th{text-align:center;color:var(--text3);font-weight:600;font-size:10px;padding:4px 6px;border-bottom:1px solid var(--border)}
+.sales-grid td{padding:5px 4px;border-bottom:1px solid #f0ece6;text-align:center;vertical-align:middle}
+.sales-grid tr:last-child td{border-bottom:none}
+.sales-month-lbl{font-size:12px;font-weight:600;color:var(--text2);white-space:nowrap}
+.sales-inp{width:80px;padding:5px 7px;border:1px solid var(--border);border-radius:6px;font-size:12px;text-align:right;background:var(--surface2);color:var(--text);outline:none;-moz-appearance:textfield}
+.sales-inp:focus{border-color:var(--amber);background:#fff}
+.sales-inp::-webkit-outer-spin-button,.sales-inp::-webkit-inner-spin-button{-webkit-appearance:none}
+.sales-rate-cell{font-size:11px;font-weight:600;min-width:50px}
+.sales-summary{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 14px;font-size:13px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+
+/* ACTIVITY LOG */
+.log-item{display:flex;align-items:flex-start;gap:10px;padding:9px 0;border-bottom:1px solid #f0ece6;font-size:12px}
+.log-item:last-child{border-bottom:none}
+.log-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:4px}
+.log-dot-g{background:var(--green)}
+.log-dot-a{background:var(--amber)}
+.log-dot-b{background:var(--blue)}
+.log-meta{font-size:10px;color:var(--text3);margin-top:2px}
+.log-comment{font-size:11px;color:var(--blue);font-style:italic;margin-top:2px}
+.log-empty{color:var(--text3);font-size:12px;text-align:center;padding:20px 0}
+
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:1000;display:flex;align-items:center;justify-content:center;padding:16px;opacity:0;pointer-events:none;transition:opacity .2s}
+.modal-overlay.open{opacity:1;pointer-events:all}
+.modal-box{background:var(--surface);border-radius:16px;padding:24px;width:100%;max-width:420px;box-shadow:0 20px 60px rgba(0,0,0,.2);transform:translateY(12px);transition:transform .2s}
+.modal-overlay.open .modal-box{transform:translateY(0)}
+.modal-title{font-size:17px;font-weight:800;margin-bottom:6px}
+.modal-sub{font-size:13px;color:var(--text2);margin-bottom:18px;line-height:1.5}
+.modal-input{width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:8px;font-size:14px;font-family:inherit;outline:none;margin-bottom:10px;background:var(--surface2)}
+.modal-input:focus{border-color:var(--amber);background:#fff}
+textarea.modal-input{height:90px;resize:vertical}
+.modal-btns{display:flex;gap:8px;margin-top:14px}
+.modal-btns button{flex:1;padding:11px;border-radius:9px;border:none;font-size:14px;font-weight:700;cursor:pointer;transition:opacity .2s;min-height:44px}
+.modal-btn-ok{background:var(--amber);color:#fff}
+.modal-btn-ok:hover{opacity:.88}
+.modal-btn-cancel{background:var(--gray-l);color:var(--text2)}
+.modal-btn-cancel:hover{background:var(--border)}
+.modal-label{font-size:11px;font-weight:700;color:var(--text2);margin-bottom:5px;display:block;text-transform:uppercase;letter-spacing:.5px}
+
+/* FOOTER */
+.footer{text-align:center;font-size:11px;color:var(--text3);padding:16px;border-top:1px solid var(--border);margin-top:20px}
+
+/* MOBILE */
+@media(max-width:768px){
+  .g2,.g3,.g4{grid-template-columns:1fr}
+  .rm-g{grid-template-columns:repeat(2,1fr)}
+  .prod-hero{grid-template-columns:1fr}
+  .panel{padding:14px 10px 80px}
+  .hdr{padding:10px 14px}
+  .hdr-info h1{font-size:14px}
+  .sales-inp{width:65px}
+}
+</style>
+</head>
+<body>
+
+<!-- MEMBER MODAL -->
+<div id="modal-member" class="modal-overlay">
+  <div class="modal-box">
+    <div class="modal-title">👋 안녕하세요!</div>
+    <div class="modal-sub">탠코 내부 대시보드입니다.<br>체크·코멘트 기록에 표시될 이름을 입력해주세요.</div>
+    <label class="modal-label">이름 / 닉네임</label>
+    <input class="modal-input" id="member-input" type="text" placeholder="예: 홍길동" maxlength="20">
+    <div class="modal-btns">
+      <button class="modal-btn-ok" onclick="saveMember()">시작하기</button>
+    </div>
+  </div>
+</div>
+
+<!-- COMMENT MODAL -->
+<div id="modal-comment" class="modal-overlay">
+  <div class="modal-box">
+    <div class="modal-title" id="comment-modal-title">✅ 달성 확인</div>
+    <div class="modal-sub" id="comment-modal-sub">코멘트를 남겨주세요 (선택사항)</div>
+    <label class="modal-label">코멘트</label>
+    <textarea class="modal-input" id="comment-input" placeholder="예: 5/31 상세페이지 오픈 완료!"></textarea>
+    <div class="modal-btns">
+      <button class="modal-btn-ok" onclick="submitComment()">확인</button>
+      <button class="modal-btn-cancel" onclick="cancelComment()">취소</button>
+    </div>
+  </div>
+</div>
+
+<!-- SETTINGS MODAL -->
+<div id="modal-settings" class="modal-overlay">
+  <div class="modal-box">
+    <div class="modal-title">⚙️ 설정</div>
+    <div class="modal-sub">팀원 이름 변경 및 Google Sheets 연동을 설정합니다.</div>
+    <label class="modal-label">팀원 이름</label>
+    <input class="modal-input" id="settings-member" type="text" placeholder="이름 입력" maxlength="20">
+    <label class="modal-label" style="margin-top:8px">Google Apps Script URL</label>
+    <input class="modal-input" id="settings-gas-url" type="url" placeholder="https://script.google.com/macros/s/...">
+    <div class="ibox a" style="margin:0 0 2px">⚠ URL 없이도 로컬 저장은 정상 동작합니다</div>
+    <div class="modal-btns">
+      <button class="modal-btn-ok" onclick="saveSettings()">저장</button>
+      <button class="modal-btn-cancel" onclick="closeModal('modal-settings')">취소</button>
+    </div>
+  </div>
+</div>
+
+<!-- NOTICE & HEADER -->
+<div class="notice">⚠ 내부 공유 전용 · 팀원에게만 공유하세요 · 체크 상태는 이 기기에 자동 저장됩니다</div>
+
+<div class="hdr">
+  <div class="logo">TC</div>
+  <div class="hdr-info">
+    <h1>탠코 내부 운영 대시보드</h1>
+    <p>주식회사 탠코 · HairTech · 내부 공유용</p>
+  </div>
+  <div class="hdr-right">
+    <span id="sync-status" class="sync-off" style="display:flex;align-items:center;gap:3px">
+      <span class="sync-dot"></span><span class="sync-label">연동 없음</span>
+    </span>
+    <span id="member-badge" class="member-badge" onclick="openModal('modal-settings')" title="설정">👤 이름 설정</span>
+    <button class="btn-icon" onclick="openModal('modal-settings')" title="설정">⚙️</button>
+    <button class="btn-icon" onclick="openActivityLog()" title="활동 로그">📋</button>
+  </div>
+</div>
+
+<div class="nav">
+  <button class="tb on" data-tab="t1" onclick="switchTab('t1',this)">🏠 전체현황</button>
+  <button class="tb" data-tab="t2" onclick="switchTab('t2',this)">🧢 항암모자가발</button>
+  <button class="tb" data-tab="t3" onclick="switchTab('t3',this)">💇 맞춤가발</button>
+  <button class="tb" data-tab="t4" onclick="switchTab('t4',this)">🛍 소모품·부자재</button>
+  <button class="tb" data-tab="t5" onclick="switchTab('t5',this)">🤝 B2B 납품</button>
+  <button class="tb" data-tab="t6" onclick="switchTab('t6',this)">✅ OKR 체커</button>
+  <button class="tb" data-tab="t7" onclick="switchTab('t7',this)">📊 KPI 트래커</button>
+</div>
+
+<!-- ============================================================ -->
+<!-- TAB 1: 전체현황 -->
+<!-- ============================================================ -->
+<div class="panel on" id="t1">
+  <div class="st">핵심 성과 지표 (KPI)</div>
+  <div class="g4">
+    <div class="kc hl"><div class="kl">2026 누적 매출</div><div class="kv">1,602<span class="ku">만원</span></div><div class="ks">01.01~05.21 · 44건</div></div>
+    <div class="kc"><div class="kl">Q1 실적 (1~3월)</div><div class="kv">1,227<span class="ku">만원</span></div><div class="ks">27건 · 평균 45.4만원/건</div></div>
+    <div class="kc"><div class="kl">Q2 현재 (4~5/21)</div><div class="kv">375<span class="ku">만원</span></div><div class="ks">17건 · 5월말 +300만 예정</div></div>
+    <div class="kc"><div class="kl">2025 연간 실적</div><div class="kv">약 2,500<span class="ku">만원</span></div><div class="ks">전년 참고치</div></div>
+  </div>
+
+  <div class="g2">
+    <div class="card">
+      <div class="card-t"><div class="ci ci-a">📈</div>월별 매출 추이 (2026)</div>
+      <div class="ch-wrap"><canvas id="revChart"></canvas></div>
+      <div style="font-size:11px;color:var(--text3);text-align:center;margin-top:6px">※ 5월: 실적(240만)+잔여예정(300만) 별도 표시</div>
+    </div>
+    <div class="card">
+      <div class="card-t"><div class="ci ci-t">🎯</div>연간 시나리오 달성률</div>
+      <div style="font-size:12px;color:var(--text2);background:var(--surface2);padding:10px 12px;border-radius:8px;border:1px solid var(--border);margin-bottom:14px">
+        누적 <strong style="color:var(--amber)">1,602만원</strong> · 기간 경과 <strong>38.6%</strong> (141/365일)
+      </div>
+      <div class="sci">
+        <div class="sch"><span class="scl">보수적</span><span class="sct">목표 3억</span></div>
+        <div class="bar-bg"><div class="bar-f bf-g" style="width:5.3%"></div></div>
+        <div class="sc-n">5.3% · 잔여 2.84억 · 월 3,890만 필요</div>
+      </div>
+      <div class="sci">
+        <div class="sch"><span class="scl">현실적</span><span class="sct">목표 5~7억</span></div>
+        <div class="bar-bg"><div class="bar-f bf-a" style="width:2.7%"></div></div>
+        <div class="sc-n">2.7% (6억 기준) · 월 5,900만 필요</div>
+      </div>
+      <div class="sci">
+        <div class="sch"><span class="scl">공격적</span><span class="sct">목표 10억</span></div>
+        <div class="bar-bg"><div class="bar-f bf-b" style="width:1.6%"></div></div>
+        <div class="sc-n">1.6% · 잔여 9.84억 · 월 1.34억 필요</div>
+      </div>
+      <div class="ibox a" style="margin-top:12px">📌 항암모자가발 상세페이지(5/31) 오픈 후 Q2~Q3가 핵심 반등 구간</div>
+    </div>
+  </div>
+
+  <div class="g2">
+    <div class="card">
+      <div class="card-t"><div class="ci ci-b">🧩</div>제품별 매출 비중</div>
+      <div class="ch-wrap" style="height:200px"><canvas id="prodChart"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-t"><div class="ci ci-a">💰</div>제품 포트폴리오 현황</div>
+      <table class="tbl">
+        <thead><tr><th>제품</th><th>판매가</th><th>마진율</th><th>상태</th></tr></thead>
+        <tbody>
+          <tr><td><strong>항암 모자가발</strong></td><td>300,000원</td><td>40.0%</td><td><span class="sp sp-act">판매중</span></td></tr>
+          <tr><td><strong>맞춤 항암모자가발</strong></td><td>500,000원</td><td>~75%</td><td><span class="sp sp-act">운영중</span></td></tr>
+          <tr><td><strong>탈모가발 (양산)</strong></td><td>100,000원</td><td>78.1%</td><td><span class="sp sp-act">판매중</span></td></tr>
+          <tr><td>B2B 납품</td><td>300,000원</td><td>-</td><td><span class="sp sp-plan">기획중</span></td></tr>
+          <tr><td>가발망</td><td>5,000원</td><td>96.7%</td><td><span class="sp sp-on">판매중</span></td></tr>
+          <tr><td>가발스탠드</td><td>25,000원</td><td>-</td><td><span class="sp sp-oct">10월 출시</span></td></tr>
+          <tr><td>가발테이프</td><td>10,000원</td><td>7.0%</td><td><span class="sp sp-hold">재검토</span></td></tr>
+          <tr><td>위그라이너</td><td>7,000원</td><td>-</td><td><span class="sp sp-on">판매중</span></td></tr>
+          <tr><td>수면비니</td><td>35,000원</td><td>-</td><td><span class="sp sp-on">판매중</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ACTIVITY LOG -->
+  <div class="card mb">
+    <div class="card-t" style="justify-content:space-between">
+      <span><div class="ci ci-g" style="display:inline-flex;margin-right:8px">📋</div>최근 팀 활동</span>
+      <button class="btn-small" onclick="clearLog()">초기화</button>
+    </div>
+    <div id="activity-log-preview"><div class="log-empty">아직 기록이 없습니다. OKR·KPI를 체크해보세요!</div></div>
+  </div>
+
+  <div class="st">2026 → 2030 로드맵</div>
+  <div class="rm-g">
+    <div class="rm-c now"><div class="rm-nb">▶ NOW</div><div class="rm-y">2026</div><div class="rm-p">검증</div><div class="rm-i">· 항암모자가발 매출<br>· IP/특허 자산 확보<br>· B2B 파트너 구축<br>· 가발스탠드 양산(10월)</div></div>
+    <div class="rm-c"><div class="rm-y">2027</div><div class="rm-p">데이터 축적</div><div class="rm-i">· B2B 플랫폼 MVP<br>· 고객 데이터 수집<br>· 일본 시장 테스트<br>· 시드 투자 유치</div></div>
+    <div class="rm-c"><div class="rm-y">2028</div><div class="rm-p">3D 시스템</div><div class="rm-i">· 3D 맞춤가발 시스템<br>· 두상 데이터 기반 생산<br>· 미국·영국 진출</div></div>
+    <div class="rm-c"><div class="rm-y">2029</div><div class="rm-p">B2B 플랫폼</div><div class="rm-i">· 헤어샵 연결 플랫폼<br>· 제작주문 자동화<br>· 시리즈A 투자</div></div>
+    <div class="rm-c"><div class="rm-y">2030</div><div class="rm-p">글로벌·IPO</div><div class="rm-i">· 글로벌 플랫폼<br>· IPO 기반 구축<br>· ESG 네트워크</div></div>
+  </div>
+  <div class="footer">주식회사 탠코 내부 대시보드 · 기준일 2026.05.21 · 내부 공유 전용</div>
+</div>
+
+<!-- ============================================================ -->
+<!-- TAB 2: 항암모자가발 -->
+<!-- ============================================================ -->
+<div class="panel" id="t2">
+  <div class="prod-hero">
+    <div>
+      <div class="pn">🧢 항암 모자가발</div>
+      <div class="pd">항암치료 후 탈모 발생 시 착용하는 프리사이즈 모자가발.<br>볼캡·버킷햇 등 다양한 모자와 호환 가능한 구조. 2026 핵심 매출 제품.</div>
+      <div class="pstats">
+        <div class="ps"><div class="pv">300,000원</div><div class="pl">판매가</div></div>
+        <div class="ps"><div class="pv">40.0%</div><div class="pl">마진율</div></div>
+        <div class="ps"><div class="pv">35.8%</div><div class="pl">매출 비중</div></div>
+        <div class="ps"><div class="pv">쿠팡·스마트스토어</div><div class="pl">판매 채널</div></div>
+      </div>
+    </div>
+    <div>
+      <div class="psb psb-on">🟢 판매중</div>
+      <div style="margin-top:8px;font-size:11px;color:var(--text3);text-align:center">핵심 제품</div>
+    </div>
+  </div>
+
+  <div class="ibox a">⚠ 핵심 액션: 상세페이지 제작 마감 <strong>2026.05.31</strong> — 판매 전환의 핵심 자료</div>
+
+  <div class="g2">
+    <div class="card">
+      <div class="card-t"><div class="ci ci-a">✅</div>항암모자가발 액션 체크리스트</div>
+      <ul class="tlist" id="task-t2">
+        <li class="ti" data-id="t2-1" data-store="tanco_prod" onclick="toggleTask(this,'tanco_prod')">
+          <div class="tck"></div><div class="tt"><strong>항암모자가발 상세페이지 제작 완료</strong><span>판매 전환 핵심 · 조요한 팀원 담당</span></div><span class="tdl dl-r">5/31</span>
+        </li>
+        <li class="ti" data-id="t2-2" data-store="tanco_prod" onclick="toggleTask(this,'tanco_prod')">
+          <div class="tck"></div><div class="tt"><strong>쿠팡 상세페이지 최적화</strong><span>검색 노출 키워드 세팅</span></div><span class="tdl dl-a">6월</span>
+        </li>
+        <li class="ti" data-id="t2-3" data-store="tanco_prod" onclick="toggleTask(this,'tanco_prod')">
+          <div class="tck"></div><div class="tt"><strong>스마트스토어 상세페이지 최적화</strong><span>SEO + 리뷰 전략</span></div><span class="tdl dl-a">6월</span>
+        </li>
+        <li class="ti" data-id="t2-4" data-store="tanco_prod" onclick="toggleTask(this,'tanco_prod')">
+          <div class="tck"></div><div class="tt"><strong>모자가발 양산 제조 프로세스 구축</strong><span>스타일 2종 × 컬러 2종 = 4종</span></div><span class="tdl dl-b">7월</span>
+        </li>
+        <li class="ti" data-id="t2-5" data-store="tanco_prod" onclick="toggleTask(this,'tanco_prod')">
+          <div class="tck"></div><div class="tt"><strong>커뮤니티 마케팅 집행</strong><span>모자가발 출시 후 유료 마케팅 시작</span></div><span class="tdl dl-b">출시 후</span>
+        </li>
+        <li class="ti" data-id="t2-6" data-store="tanco_prod" onclick="toggleTask(this,'tanco_prod')">
+          <div class="tck"></div><div class="tt"><strong>쉐이빙 연계 파트너사 확보</strong><span>파트너사용 소개서 제작 필요</span></div><span class="tdl dl-b">7월</span>
+        </li>
+        <li class="ti" data-id="t2-7" data-store="tanco_prod" onclick="toggleTask(this,'tanco_prod')">
+          <div class="tck"></div><div class="tt"><strong>B2G 서초구청 복지과 제안</strong><span>보급형 모자가발 납품 가능성 검토</span></div><span class="tdl dl-n">하반기</span>
+        </li>
+      </ul>
+    </div>
+    <div class="card">
+      <div class="card-t"><div class="ci ci-b">📋</div>제품 현황 & 메모</div>
+      <table class="tbl" style="margin-bottom:14px">
+        <thead><tr><th>항목</th><th>내용</th></tr></thead>
+        <tbody>
+          <tr><td>스타일</td><td>단발, 중단발</td></tr>
+          <tr><td>컬러</td><td>내추럴블랙, 내추럴브라운</td></tr>
+          <tr><td>모자 호환</td><td>볼캡, 버킷햇</td></tr>
+          <tr><td>소재</td><td>인모 100%</td></tr>
+          <tr><td>판매 채널</td><td>쿠팡, 네이버 스마트스토어</td></tr>
+          <tr><td>맞춤형 버전</td><td>500,000원 (별도 운영)</td></tr>
+        </tbody>
+      </table>
+      <div class="ibox g">✅ 개발 완료 · 특허 등록 완료 · 양산 프로세스 구축 중</div>
+    </div>
+  </div>
+
+  <!-- Monthly Sales: 항암모자가발 -->
+  <div class="card mb">
+    <div class="card-t"><div class="ci ci-g">📅</div>월별 판매 실적 · 목표 달성률</div>
+    <table class="sales-grid" style="width:100%;border-collapse:collapse">
+      <thead>
+        <tr>
+          <th style="text-align:left">월</th>
+          <th>수량 (건)</th>
+          <th>금액 (만원)</th>
+          <th>목표 대비</th>
+        </tr>
+      </thead>
+      <tbody id="sales-tbody-t2">
+        <tr>
+          <td class="sales-month-lbl">1월</td>
+          <td><input type="number" class="sales-inp" data-prod="t2" data-month="1" data-type="qty" placeholder="수량" onchange="saveSalesData(this)" min="0"></td>
+          <td><input type="number" class="sales-inp" data-prod="t2" data-month="1" data-type="amt" placeholder="금액" onchange="saveSalesData(this)" min="0"></td>
+          <td class="sales-rate-cell" id="sales-rate-t2-1">-</td>
+        </tr>
+        <tr>
+          <td class="sales-month-lbl">2월</td>
+          <td><input type="number" class="sales-inp" data-prod="t2" data-month="2" data-type="qty" placeholder="수량" onchange="saveSalesData(this)" min="0"></td>
+          <td><input type="number" class="sales-inp" data-prod="t2" data-month="2" data-type="amt" placeholder="금액" onchange="saveSalesData(this)" min="0"></td>
+          <td class="sales-rate-cell" id="sales-rate-t2-2">-</td>
+        </tr>
+        <tr>
+          <td class="sales-month-lbl">3월</td>
+          <td><input type="number" class="sales-inp" data-prod="t2" data-month="3" data-type="qty" placeholder="수량" onchange="saveSalesData(this)" min="0"></td>
+          <td><input type="number" class="sales-inp" data-prod="t2" data-month="3" data-type="amt" placeholder="금액" onchange="saveSalesData(this)" min="0"></td>
+          <td class="sales-rate-cell" id="sales-rate-t2-3">-</td>
+        </tr>
+        <tr>
+          <td class="sales-month-lbl">4월</td>
+          <td><input type="number" class="sales-inp" data-prod="t2" data-month="4" data-type="qty" placeholder="수량" onchange="saveSalesData(this)" min="0"></td>
+          <td><input type="number" class="sales-inp" data-prod="t2" data-month="4" data-type="amt" placeholder="금액" onchange="saveSalesData(this)" min="0"></td>
+          <td class="sales-rate-cell" id="sales-rate-t2-4">-</td>
+        </tr>
+        <tr>
+          <td class="sales-month-lbl">5월</td>
+          <td><input type="number" class="sales-inp" data-prod="t2" data-month="5" data-type="qty" placeholder="수량" onchange="saveSalesData(this)" min="0"></td>
+          <td><input type="number" class="sales-inp" data-prod="t2" data-month="5" data-type="amt" placeholder="금액" onchange="saveSalesData(this)" min="0"></td>
+          <td class="sales-rate-cell" id="sales-rate-t2-5">-</td>
+        </tr>
+        <tr>
+          <td class="sales-month-lbl">6월</td>
+          <td><input type="number" class="sales-inp" data-prod="t2" data-month="6" data-type="qty" placeholder="수량" onchange="saveSalesData(this)" min="0"></td>
+          <td><input type="number" class="sales-inp" data-prod="t2" data-month="6" data-type="amt" placeholder="금액" onchange="saveSalesData(this)" min="0"></td>
+          <td class="sales-rate-cell" id="sales-rate-t2-6">-</td>
+        </tr>
+        <tr>
+          <td class="sales-month-lbl">7월</td>
+          <td><input type="number" class="sales-inp" data-prod="t2" data-month="7" data-type="qty" placeholder="수량" onchange="saveSalesData(this)" min="0"></td>
+          <td><input type="number" class="sales-inp" data-prod="t2" data-month="7" data-type="amt" placeholder="금액" onchange="saveSalesData(this)" min="0"></td>
+          <td class="sales-rate-cell" id="sales-rate-t2-7">-</td>
+        </tr>
+        <tr>
+          <td class="sales-month-lbl">8월</td>
+          <td><input type="number" class="sales-inp" data-prod="t2" data-month="8" data-type="qty" placeholder="수량" onchange="saveSalesData(this)" min="0"></td>
+          <td><input type="number" class="sales-inp" data-prod="t2" data-month="8" data-type="amt" placeholder="금액" onchange="saveSalesData(this)" min="0"></td>
+          <td class="sales-rate-cell" id="sales-rate-t2-8">-</td>
+        </tr>
+        <tr>
+          <td class="sales-month-lbl">9월</td>
+          <td><input type="number" class="sales-inp" data-prod="t2" data-month="9" data-type="qty" placeholder="수량" onchange="saveSalesData(this)" min="0"></td>
+          <td><input type="number" class="sales-inp" data-prod="t2" data-month="9" data-type="amt" placeholder="금액" onchange="saveSalesData(this)" min="0"></td>
+          <td class="sales-rate-cell" id="sales-rate-t2-9">-</td>
+        </tr>
+        <tr>
+          <td class="sales-month-lbl">10월</td>
+          <td><input type="number" class="sales-inp" data-prod="t2" data-month="10" data-type="qty" placeholder="수량" onchange="saveSalesData(this)" min="0"></td>
+          <td><input type="number" class="sales-inp" data-prod="t2" data-month="10" data-type="amt" placeholder="금액" onchange="saveSalesData(this)" min="0"></td>
+          <td class="sales-rate-cell" id="sales-rate-t2-10">-</td>
+        </tr>
+        <tr>
+          <td class="sales-month-lbl">11월</td>
+          <td><input type="number" class="sales-inp" data-prod="t2" data-month="11" data-type="qty" placeholder="수량" onchange="saveSalesData(this)" min="0"></td>
+          <td><input type="number" class="sales-inp" data-prod="t2" data-month="11" data-type="amt" placeholder="금액" onchange="saveSalesData(this)" min="0"></td>
+          <td class="sales-rate-cell" id="sales-rate-t2-11">-</td>
+        </tr>
+        <tr>
+          <td class="sales-month-lbl">12월</td>
+          <td><input type="number" class="sales-inp" data-prod="t2" data-month="12" data-type="qty" placeholder="수량" onchange="saveSalesData(this)" min="0"></td>
+          <td><input type="number" class="sales-inp" data-prod="t2" data-month="12" data-type="amt" placeholder="금액" onchange="saveSalesData(this)" min="0"></td>
+          <td class="sales-rate-cell" id="sales-rate-t2-12">-</td>
+        </tr>
+      </tbody>
+    </table>
+    <div class="sales-summary">
+      <span style="font-size:12px;font-weight:700">연간 목표: <strong style="color:var(--amber)">6000만원</strong></span>
+      <span style="font-size:12px;color:var(--text2)">누적 합계: <strong id="sales-total-t2" style="color:var(--teal)">0만원</strong></span>
+      <span style="font-size:12px;color:var(--text2)">달성률: <strong id="sales-pct-t2" style="color:var(--green)">0%</strong></span>
+      <input type="number" id="sales-target-t2" class="sales-inp" placeholder="목표 수정" style="width:100px;margin-left:auto" value="6000" onchange="updateSalesTarget('t2', this.value)">
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- TAB 3: 맞춤가발 -->
+<!-- ============================================================ -->
+<div class="panel" id="t3">
+  <div class="prod-hero">
+    <div>
+      <div class="pn">💇 맞춤가발</div>
+      <div class="pd">고객 두상·모발 데이터 기반 1:1 맞춤 제작 서비스.<br>항암탈모 고객용 맞춤 항암모자가발(50만원)과 일반 탈모가발(100만원) 운영.</div>
+      <div class="pstats">
+        <div class="ps"><div class="pv">50~100만원</div><div class="pl">제작 단가</div></div>
+        <div class="ps"><div class="pv">~75%</div><div class="pl">마진율</div></div>
+        <div class="ps"><div class="pv">14.9%</div><div class="pl">매출 비중</div></div>
+        <div class="ps"><div class="pv">상담→제작→피팅</div><div class="pl">운영 방식</div></div>
+      </div>
+    </div>
+    <div><div class="psb psb-on">🟢 운영중</div></div>
+  </div>
+  <div class="g2">
+    <div class="card">
+      <div class="card-t"><div class="ci ci-a">✅</div>맞춤가발 액션 체크리스트</div>
+      <ul class="tlist">
+        <li class="ti" data-id="t3-1" data-store="tanco_prod" onclick="toggleTask(this,'tanco_prod')">
+          <div class="tck"></div><div class="tt"><strong>외주인력 확보</strong><span>맞춤가발 제작 인력</span></div><span class="tdl dl-a">7/31</span>
+        </li>
+        <li class="ti" data-id="t3-2" data-store="tanco_prod" onclick="toggleTask(this,'tanco_prod')">
+          <div class="tck"></div><div class="tt"><strong>디지털 작업지시서 구축</strong><span>수기 → 표준 데이터 양식</span></div><span class="tdl dl-b">8월</span>
+        </li>
+        <li class="ti" data-id="t3-3" data-store="tanco_prod" onclick="toggleTask(this,'tanco_prod')">
+          <div class="tck"></div><div class="tt"><strong>고객 두상·모발 데이터 양식 구축</strong><span>헤어테크 기업 증빙의 기초</span></div><span class="tdl dl-b">8월</span>
+        </li>
+        <li class="ti" data-id="t3-4" data-store="tanco_prod" onclick="toggleTask(this,'tanco_prod')">
+          <div class="tck"></div><div class="tt"><strong>피팅 피드백 데이터 관리 체계</strong><span>1차 피팅 후 수정사항 기록</span></div><span class="tdl dl-n">하반기</span>
+        </li>
+        <li class="ti" data-id="t3-5" data-store="tanco_prod" onclick="toggleTask(this,'tanco_prod')">
+          <div class="tck"></div><div class="tt"><strong>3D 맞춤가발 제작 방향 정리</strong><span>기술기업 포지셔닝 연결</span></div><span class="tdl dl-n">2027</span>
+        </li>
+      </ul>
+    </div>
+    <div class="card">
+      <div class="card-t"><div class="ci ci-b">📋</div>IP & 기술 현황</div>
+      <table class="tbl">
+        <thead><tr><th>항목</th><th>상태</th></tr></thead>
+        <tbody>
+          <tr><td>3D 맞춤가발 제조 특허</td><td><span class="sp sp-on">등록 완료</span></td></tr>
+          <tr><td>자가모발 데이터 기반 특허</td><td><span class="sp sp-act">출원/심사중</span></td></tr>
+          <tr><td>기부 모발 가발 원료화</td><td><span class="sp sp-act">진행중</span></td></tr>
+          <tr><td>디지털 작업지시서</td><td><span class="sp sp-plan">설계 필요</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="card mb">
+    <div class="card-t"><div class="ci ci-g">📅</div>월별 판매 실적 · 목표 달성률</div>
+    <table class="sales-grid" style="width:100%;border-collapse:collapse">
+      <thead><tr><th style="text-align:left">월</th><th>수량 (건)</th><th>금액 (만원)</th><th>목표 대비</th></tr></thead>
+      <tbody id="sales-tbody-t3">
+        <tr>
+          <td class="sales-month-lbl">1월</td>
+          <td><input type="number" class="sales-inp" data-prod="t3" data-month="1" data-type="qty" placeholder="수량" onchange="saveSalesData(this)" min="0"></td>
+          <td><input type="number" class="sales-inp" data-prod="t3" data-month="1" data-type="amt" placeholder="금액" onchange="saveSalesData(this)" min="0"></td>
+          <td class="sales-rate-cell" id="sales-rate-t3-1">-</td>
+        </tr>
+        <tr>
+          <td class="sales-month-lbl">2월</td>
+          <td><input type="number" class="sales-inp" data-prod="t3" data-month="2" data-type="qty" placeholder="수량" onchange="saveSalesData(this)" min="0"></td>
+          <td><input type="number" class="sales-inp" data-prod="t3" data-month="2" data-type="amt" placeholder="금액" onchange="saveSalesData(this)" min="0"></td>
+          <td class="sales-rate-cell" id="sales-rate-t3-2">-</td>
+        </tr>
+        <tr>
+          <td class="sales-month-lbl">3월</td>
+          <td><input type="number" class="sales-inp" data-prod="t3" data-month="3" data-type="qty" placeholder="수량" onchange="saveSalesData(this)" min="0"></td>
+          <td><input type="number" class="sales-inp" data-prod="t3" data-month="3" data-type="amt" placeholder="금액" onchange="saveSalesData(this)" min="0"></td>
+          <td class="sales-rate-cell" id="sales-rate-t3-3">-</td>
+        </tr>
+        <tr>
+          <td class="sales-month-lbl">4월</td>
+          <td><input type="number" class="sales-inp" data-prod="t3" data-month="4" data-type="qty" placeholder="수량" onchange="saveSalesData(this)" min="0"></td>
+          <td><input type="number" class="sales-inp" data-prod="t3" data-month="4" data-type="amt" placeholder="금액" onchange="saveSalesData(this)" min="0"></td>
+          <td class="sales-rate-cell" id="sales-rate-t3-4">-</td>
+        </tr>
+        <tr>
+          <td class="sales-month-lbl">5월</td>
+          <td><input type="number" class="sales-inp" data-prod="t3" data-month="5" data-type="qty" placeholder="수량" onchange="saveSalesData(this)" min="0"></td>
+          <td><input type="number" class="sales-inp" data-prod="t3" data-month="5" data-type="amt" placeholder="금액" onchange="saveSalesData(this)" min="0"></td>
+          <td class="sales-rate-cell" id="sales-rate-t3-5">-</td>
+        </tr>
+        <tr>
+          <td class="sales-month-lbl">6월</td>
+          <td><input type="number" class="sales-inp" data-prod="t3" data-month="6" data-type="qty" placeholder="수량" onchange="saveSalesData(this)" min="0"></td>
+          <td><input type="number" class="sales-inp" data-prod="t3" data-month="6" data-type="amt" placeholder="금액" onchange="saveSalesData(this)" min="0"></td>
+          <td class="sales-rate-cell" id="sales-rate-t3-6">-</td>
+        </tr>
+        <tr>
+          <td class="sales-month-lbl">7월</td>
+          <td><input type="number" class="sales-inp" data-prod="t3" data-month="7" data-type="qty" placeholder="수량" onchange="saveSalesData(this)" min="0"></td>
+          <td><input type="number" class="sales-inp" data-prod="t3" data-month="7" data-type="amt" placeholder="금액" onchange="saveSalesData(this)" min="0"></td>
+          <td class="sales-rate-cell" id="sales-rate-t3-7">-</td>
+        </tr>
+        <tr>
+          <td class="sales-month-lbl">8월</td>
+          <td><input type="number" class="sales-inp" data-prod="t3" data-month="8" data-type="qty" placeholder="수량" onchange="saveSalesData(this)" min="0"></td>
+          <td><input type="number" class="sales-inp" data-prod="t3" data-month="8" data-type="amt" placeholder="금액" onchange="saveSalesData(this)" min="0"></td>
+          <td class="sales-rate-cell" id="sales-rate-t3-8">-</td>
+        </tr>
+        <tr>
+          <td class="sales-month-lbl">9월</td>
+          <td><input type="number" class="sales-inp" data-prod="t3" data-month="9" data-type="qty" placeholder="수량" onchange="saveSalesData(this)" min="0"></td>
+          <td><input type="number" class="sales-inp" data-prod="t3" data-month="9" data-type="amt" placeholder="금액" onchange="saveSalesData(this)" min="0"></td>
+          <td class="sales-rate-cell" id="sales-rate-t3-9">-</td>
+        </tr>
+        <tr>
+          <td class="sales-month-lbl">10월</td>
+          <td><input type="number" class="sales-inp" data-prod="t3" data-month="10" data-type="qty" placeholder="수량" onchange="saveSalesData(this)" min="0"></td>
+          <td><input type="number" class="sales-inp" data-prod="t3" data-month="10" data-type="amt" placeholder="금액" onchange="saveSalesData(this)" min="0"></td>
+          <td class="sales-rate-cell" id="sales-rate-t3-10">-</td>
+        </tr>
+        <tr>
+          <td class="sales-month-lbl">11월</td>
+          <td><input type="number" class="sales-inp" data-prod="t3" data-month="11" data-type="qty" placeholder="수량" onchange="saveSalesData(this)" min="0"></td>
+          <td><input type="number" class="sales-inp" data-prod="t3" data-month="11" data-type="amt" placeholder="금액" onchange="saveSalesData(this)" min="0"></td>
+          <td class="sales-rate-cell" id="sales-rate-t3-11">-</td>
+        </tr>
+        <tr>
+          <td class="sales-month-lbl">12월</td>
+          <td><input type="number" class="sales-inp" data-prod="t3" data-month="12" data-type="qty" placeholder="수량" onchange="saveSalesData(this)" min="0"></td>
+          <td><input type="number" class="sales-inp" data-prod="t3" data-month="12" data-type="amt" placeholder="금액" onchange="saveSalesData(this)" min="0"></td>
+          <td class="sales-rate-cell" id="sales-rate-t3-12">-</td>
+        </tr></tbody>
+    </table>
+    <div class="sales-summary">
+      <span style="font-size:12px;font-weight:700">연간 목표: <strong style="color:var(--amber)">2400만원</strong></span>
+      <span style="font-size:12px;color:var(--text2)">누적: <strong id="sales-total-t3" style="color:var(--teal)">0만원</strong></span>
+      <span style="font-size:12px;color:var(--text2)">달성률: <strong id="sales-pct-t3" style="color:var(--green)">0%</strong></span>
+      <input type="number" id="sales-target-t3" class="sales-inp" placeholder="목표수정" style="width:95px;margin-left:auto" value="2400" onchange="updateSalesTarget('t3',this.value)">
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- TAB 4: 소모품·부자재 -->
+<!-- ============================================================ -->
+<div class="panel" id="t4">
+  <div class="prod-hero" style="grid-template-columns:1fr">
+    <div>
+      <div class="pn">🛍 소모품 · 부자재</div>
+      <div class="pd">반복 구매가 가능한 저단가 소모품 라인업. 가발망(96.7% 마진)이 핵심.</div>
+      <div class="pstats">
+        <div class="ps"><div class="pv">5,000~35,000원</div><div class="pl">판매가 범위</div></div>
+        <div class="ps"><div class="pv">96.7%</div><div class="pl">가발망 마진율</div></div>
+        <div class="ps"><div class="pv">반복 구매</div><div class="pl">구매 패턴</div></div>
+      </div>
+    </div>
+  </div>
+  <div class="card mb">
+    <div class="card-t"><div class="ci ci-a">📦</div>소모품 전체 현황</div>
+    <table class="tbl">
+      <thead><tr><th>제품</th><th>판매가</th><th>마진율</th><th>상태</th></tr></thead>
+      <tbody>
+        <tr><td><strong>가발망</strong></td><td>5,000원</td><td>96.7%</td><td><span class="sp sp-on">판매중</span></td></tr>
+        <tr><td>위그라이너</td><td>7,000원</td><td>-</td><td><span class="sp sp-on">판매중</span></td></tr>
+        <tr><td>수면비니</td><td>35,000원</td><td>-</td><td><span class="sp sp-on">판매중</span></td></tr>
+        <tr><td>가발 테이프</td><td>10,000원</td><td>7.0%</td><td><span class="sp sp-hold">재검토</span></td></tr>
+        <tr><td>클립류·부자재</td><td>30,000원</td><td>-</td><td><span class="sp sp-plan">기획중</span></td></tr>
+        <tr><td>가발 스탠드</td><td>25,000원</td><td>-</td><td><span class="sp sp-oct">10월 출시</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="g2">
+    <div class="card">
+      <div class="card-t"><div class="ci ci-a">✅</div>소모품 액션 체크리스트</div>
+      <ul class="tlist">
+        <li class="ti" data-id="t4-1" data-store="tanco_prod" onclick="toggleTask(this,'tanco_prod')">
+          <div class="tck"></div><div class="tt"><strong>가발스탠드 금형비 확보</strong><span>제조 All in One 지원사업 연계</span></div><span class="tdl dl-a">6~7월</span>
+        </li>
+        <li class="ti" data-id="t4-2" data-store="tanco_prod" onclick="toggleTask(this,'tanco_prod')">
+          <div class="tck"></div><div class="tt"><strong>가발스탠드 디자인·패키지 개발</strong><span>디자인랩 협업</span></div><span class="tdl dl-a">7~9월</span>
+        </li>
+        <li class="ti" data-id="t4-3" data-store="tanco_prod" onclick="toggleTask(this,'tanco_prod')">
+          <div class="tck"></div><div class="tt"><strong>가발테이프 수입·인증 절차 확인</strong><span>서류 확인 필요</span></div><span class="tdl dl-b">7월</span>
+        </li>
+        <li class="ti" data-id="t4-4" data-store="tanco_prod" onclick="toggleTask(this,'tanco_prod')">
+          <div class="tck"></div><div class="tt"><strong>클립류 유통 채널 기획</strong><span>커머스 매출 확장용</span></div><span class="tdl dl-n">하반기</span>
+        </li>
+        <li class="ti" data-id="t4-5" data-store="tanco_prod" onclick="toggleTask(this,'tanco_prod')">
+          <div class="tck"></div><div class="tt"><strong>가발망 자체 개발 검토</strong><span>Then and Now 브랜드 수출 가능성</span></div><span class="tdl dl-n">2027</span>
+        </li>
+      </ul>
+    </div>
+    <div class="card">
+      <div class="card-t"><div class="ci ci-t">💡</div>소모품 전략 메모</div>
+      <div class="ibox a">⚠ 가발스탠드: 10월 출시 목표 · 금형비 확보 선결과제</div>
+      <div class="ibox">가발망 → 국내용 고품질 자체 개발 시 Then and Now 브랜드로 수출 가능</div>
+      <div class="ibox g">쇼피·라쿠텐 수출 준비 → 2027 바우처 선정 조건 확인 필요</div>
+    </div>
+  </div>
+
+  <div class="card mb">
+    <div class="card-t"><div class="ci ci-g">📅</div>월별 판매 실적 · 목표 달성률</div>
+    <table class="sales-grid" style="width:100%;border-collapse:collapse">
+      <thead><tr><th style="text-align:left">월</th><th>수량 (건)</th><th>금액 (만원)</th><th>목표 대비</th></tr></thead>
+      <tbody id="sales-tbody-t4">
+        <tr>
+          <td class="sales-month-lbl">1월</td>
+          <td><input type="number" class="sales-inp" data-prod="t4" data-month="1" data-type="qty" placeholder="수량" onchange="saveSalesData(this)" min="0"></td>
+          <td><input type="number" class="sales-inp" data-prod="t4" data-month="1" data-type="amt" placeholder="금액" onchange="saveSalesData(this)" min="0"></td>
+          <td class="sales-rate-cell" id="sales-rate-t4-1">-</td>
+        </tr>
+        <tr>
+          <td class="sales-month-lbl">2월</td>
+          <td><input type="number" class="sales-inp" data-prod="t4" data-month="2" data-type="qty" placeholder="수량" onchange="saveSalesData(this)" min="0"></td>
+          <td><input type="number" class="sales-inp" data-prod="t4" data-month="2" data-type="amt" placeholder="금액" onchange="saveSalesData(this)" min="0"></td>
+          <td class="sales-rate-cell" id="sales-rate-t4-2">-</td>
+        </tr>
+        <tr>
+          <td class="sales-month-lbl">3월</td>
+          <td><input type="number" class="sales-inp" data-prod="t4" data-month="3" data-type="qty" placeholder="수량" onchange="saveSalesData(this)" min="0"></td>
+          <td><input type="number" class="sales-inp" data-prod="t4" data-month="3" data-type="amt" placeholder="금액" onchange="saveSalesData(this)" min="0"></td>
+          <td class="sales-rate-cell" id="sales-rate-t4-3">-</td>
+        </tr>
+        <tr>
+          <td class="sales-month-lbl">4월</td>
+          <td><input type="number" class="sales-inp" data-prod="t4" data-month="4" data-type="qty" placeholder="수량" onchange="saveSalesData(this)" min="0"></td>
+          <td><input type="number" class="sales-inp" data-prod="t4" data-month="4" data-type="amt" placeholder="금액" onchange="saveSalesData(this)" min="0"></td>
+          <td class="sales-rate-cell" id="sales-rate-t4-4">-</td>
+        </tr>
+        <tr>
+          <td class="sales-month-lbl">5월</td>
+          <td><input type="number" class="sales-inp" data-prod="t4" data-month="5" data-type="qty" placeholder="수량" onchange="saveSalesData(this)" min="0"></td>
+          <td><input type="number" class="sales-inp" data-prod="t4" data-month="5" data-type="amt" placeholder="금액" onchange="saveSalesData(this)" min="0"></td>
+          <td class="sales-rate-cell" id="sales-rate-t4-5">-</td>
+        </tr>
+        <tr>
+          <td class="sales-month-lbl">6월</td>
+          <td><input type="number" class="sales-inp" data-prod="t4" data-month="6" data-type="qty" placeholder="수량" onchange="saveSalesData(this)" min="0"></td>
+          <td><input type="number" class="sales-inp" data-prod="t4" data-month="6" data-type="amt" placeholder="금액" onchange="saveSalesData(this)" min="0"></td>
+          <td class="sales-rate-cell" id="sales-rate-t4-6">-</td>
+        </tr>
+        <tr>
+          <td class="sales-month-lbl">7월</td>
+          <td><input type="number" class="sales-inp" data-prod="t4" data-month="7" data-type="qty" placeholder="수량" onchange="saveSalesData(this)" min="0"></td>
+          <td><input type="number" class="sales-inp" data-prod="t4" data-month="7" data-type="amt" placeholder="금액" onchange="saveSalesData(this)" min="0"></td>
+          <td class="sales-rate-cell" id="sales-rate-t4-7">-</td>
+        </tr>
+        <tr>
+          <td class="sales-month-lbl">8월</td>
+          <td><input type="number" class="sales-inp" data-prod="t4" data-month="8" data-type="qty" placeholder="수량" onchange="saveSalesData(this)" min="0"></td>
+          <td><input type="number" class="sales-inp" data-prod="t4" data-month="8" data-type="amt" placeholder="금액" onchange="saveSalesData(this)" min="0"></td>
+          <td class="sales-rate-cell" id="sales-rate-t4-8">-</td>
+        </tr>
+        <tr>
+          <td class="sales-month-lbl">9월</td>
+          <td><input type="number" class="sales-inp" data-prod="t4" data-month="9" data-type="qty" placeholder="수량" onchange="saveSalesData(this)" min="0"></td>
+          <td><input type="number" class="sales-inp" data-prod="t4" data-month="9" data-type="amt" placeholder="금액" onchange="saveSalesData(this)" min="0"></td>
+          <td class="sales-rate-cell" id="sales-rate-t4-9">-</td>
+        </tr>
+        <tr>
+          <td class="sales-month-lbl">10월</td>
+          <td><input type="number" class="sales-inp" data-prod="t4" data-month="10" data-type="qty" placeholder="수량" onchange="saveSalesData(this)" min="0"></td>
+          <td><input type="number" class="sales-inp" data-prod="t4" data-month="10" data-type="amt" placeholder="금액" onchange="saveSalesData(this)" min="0"></td>
+          <td class="sales-rate-cell" id="sales-rate-t4-10">-</td>
+        </tr>
+        <tr>
+          <td class="sales-month-lbl">11월</td>
+          <td><input type="number" class="sales-inp" data-prod="t4" data-month="11" data-type="qty" placeholder="수량" onchange="saveSalesData(this)" min="0"></td>
+          <td><input type="number" class="sales-inp" data-prod="t4" data-month="11" data-type="amt" placeholder="금액" onchange="saveSalesData(this)" min="0"></td>
+          <td class="sales-rate-cell" id="sales-rate-t4-11">-</td>
+        </tr>
+        <tr>
+          <td class="sales-month-lbl">12월</td>
+          <td><input type="number" class="sales-inp" data-prod="t4" data-month="12" data-type="qty" placeholder="수량" onchange="saveSalesData(this)" min="0"></td>
+          <td><input type="number" class="sales-inp" data-prod="t4" data-month="12" data-type="amt" placeholder="금액" onchange="saveSalesData(this)" min="0"></td>
+          <td class="sales-rate-cell" id="sales-rate-t4-12">-</td>
+        </tr></tbody>
+    </table>
+    <div class="sales-summary">
+      <span style="font-size:12px;font-weight:700">연간 목표: <strong style="color:var(--amber)">800만원</strong></span>
+      <span style="font-size:12px;color:var(--text2)">누적: <strong id="sales-total-t4" style="color:var(--teal)">0만원</strong></span>
+      <span style="font-size:12px;color:var(--text2)">달성률: <strong id="sales-pct-t4" style="color:var(--green)">0%</strong></span>
+      <input type="number" id="sales-target-t4" class="sales-inp" placeholder="목표수정" style="width:95px;margin-left:auto" value="800" onchange="updateSalesTarget('t4',this.value)">
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- TAB 5: B2B 납품 -->
+<!-- ============================================================ -->
+<div class="panel" id="t5">
+  <div class="prod-hero" style="grid-template-columns:1fr">
+    <div>
+      <div class="pn">🤝 B2B 납품</div>
+      <div class="pd">헤어샵·병원·요양병원·지자체 대상 도매 납품 채널. 건당 30만원 납품가 기준. 2026년 매출 비중 19.7%.</div>
+      <div class="pstats">
+        <div class="ps"><div class="pv">300,000원</div><div class="pl">납품 단가</div></div>
+        <div class="ps"><div class="pv">19.7%</div><div class="pl">매출 비중</div></div>
+        <div class="ps"><div class="pv">0/10곳</div><div class="pl">파트너 현황</div></div>
+        <div class="ps"><div class="pv">8/31</div><div class="pl">파트너 확보 목표일</div></div>
+      </div>
+    </div>
+  </div>
+  <div class="g2">
+    <div class="card">
+      <div class="card-t"><div class="ci ci-a">✅</div>B2B 액션 체크리스트</div>
+      <ul class="tlist">
+        <li class="ti" data-id="t5-1" data-store="tanco_prod" onclick="toggleTask(this,'tanco_prod')">
+          <div class="tck"></div><div class="tt"><strong>B2B 파트너 10곳 확보</strong><span>헤어샵 중심</span></div><span class="tdl dl-a">8/31</span>
+        </li>
+        <li class="ti" data-id="t5-2" data-store="tanco_prod" onclick="toggleTask(this,'tanco_prod')">
+          <div class="tck"></div><div class="tt"><strong>파트너사용 소개서 제작</strong><span>쉐이빙 연계 파트너사 대상</span></div><span class="tdl dl-r">즉시</span>
+        </li>
+        <li class="ti" data-id="t5-3" data-store="tanco_prod" onclick="toggleTask(this,'tanco_prod')">
+          <div class="tck"></div><div class="tt"><strong>헤어샵 B2B 온라인몰 기획</strong><span>파트너 전용 주문 채널</span></div><span class="tdl dl-b">중반기</span>
+        </li>
+        <li class="ti" data-id="t5-4" data-store="tanco_prod" onclick="toggleTask(this,'tanco_prod')">
+          <div class="tck"></div><div class="tt"><strong>풀필먼트 연동</strong><span>B2B 주문 처리 자동화</span></div><span class="tdl dl-a">8/31</span>
+        </li>
+        <li class="ti" data-id="t5-5" data-store="tanco_prod" onclick="toggleTask(this,'tanco_prod')">
+          <div class="tck"></div><div class="tt"><strong>서초구청 복지과 모자가발 제안</strong><span>B2G · 보급형 납품 가능성</span></div><span class="tdl dl-n">하반기</span>
+        </li>
+        <li class="ti" data-id="t5-6" data-store="tanco_prod" onclick="toggleTask(this,'tanco_prod')">
+          <div class="tck"></div><div class="tt"><strong>병원·요양병원 납품 가능성 검토</strong><span>항암 고객 접점 확보</span></div><span class="tdl dl-n">하반기</span>
+        </li>
+      </ul>
+    </div>
+    <div class="card">
+      <div class="card-t"><div class="ci ci-b">📊</div>B2B 파이프라인</div>
+      <table class="tbl">
+        <thead><tr><th>채널</th><th>상태</th><th>비고</th></tr></thead>
+        <tbody>
+          <tr><td>헤어샵 파트너</td><td><span class="sp sp-plan">예정중</span></td><td>리스트 정리 필요</td></tr>
+          <tr><td>서초구청 복지과</td><td><span class="sp sp-plan">기획중</span></td><td>보급형 모자가발</td></tr>
+          <tr><td>병원·요양병원</td><td><span class="sp sp-hold">보류중</span></td><td>항암 고객 접점</td></tr>
+          <tr><td>일본 B2B</td><td><span class="sp sp-plan">검토중</span></td><td>2026 하반기~2027</td></tr>
+        </tbody>
+      </table>
+      <div class="ibox a" style="margin-top:10px">⚠ 현재 파트너 0곳 · 8/31까지 10곳 확보가 OKR 목표</div>
+    </div>
+  </div>
+
+  <div class="card mb">
+    <div class="card-t"><div class="ci ci-g">📅</div>월별 판매 실적 · 목표 달성률</div>
+    <table class="sales-grid" style="width:100%;border-collapse:collapse">
+      <thead><tr><th style="text-align:left">월</th><th>수량 (건)</th><th>금액 (만원)</th><th>목표 대비</th></tr></thead>
+      <tbody id="sales-tbody-t5">
+        <tr>
+          <td class="sales-month-lbl">1월</td>
+          <td><input type="number" class="sales-inp" data-prod="t5" data-month="1" data-type="qty" placeholder="수량" onchange="saveSalesData(this)" min="0"></td>
+          <td><input type="number" class="sales-inp" data-prod="t5" data-month="1" data-type="amt" placeholder="금액" onchange="saveSalesData(this)" min="0"></td>
+          <td class="sales-rate-cell" id="sales-rate-t5-1">-</td>
+        </tr>
+        <tr>
+          <td class="sales-month-lbl">2월</td>
+          <td><input type="number" class="sales-inp" data-prod="t5" data-month="2" data-type="qty" placeholder="수량" onchange="saveSalesData(this)" min="0"></td>
+          <td><input type="number" class="sales-inp" data-prod="t5" data-month="2" data-type="amt" placeholder="금액" onchange="saveSalesData(this)" min="0"></td>
+          <td class="sales-rate-cell" id="sales-rate-t5-2">-</td>
+        </tr>
+        <tr>
+          <td class="sales-month-lbl">3월</td>
+          <td><input type="number" class="sales-inp" data-prod="t5" data-month="3" data-type="qty" placeholder="수량" onchange="saveSalesData(this)" min="0"></td>
+          <td><input type="number" class="sales-inp" data-prod="t5" data-month="3" data-type="amt" placeholder="금액" onchange="saveSalesData(this)" min="0"></td>
+          <td class="sales-rate-cell" id="sales-rate-t5-3">-</td>
+        </tr>
+        <tr>
+          <td class="sales-month-lbl">4월</td>
+          <td><input type="number" class="sales-inp" data-prod="t5" data-month="4" data-type="qty" placeholder="수량" onchange="saveSalesData(this)" min="0"></td>
+          <td><input type="number" class="sales-inp" data-prod="t5" data-month="4" data-type="amt" placeholder="금액" onchange="saveSalesData(this)" min="0"></td>
+          <td class="sales-rate-cell" id="sales-rate-t5-4">-</td>
+        </tr>
+        <tr>
+          <td class="sales-month-lbl">5월</td>
+          <td><input type="number" class="sales-inp" data-prod="t5" data-month="5" data-type="qty" placeholder="수량" onchange="saveSalesData(this)" min="0"></td>
+          <td><input type="number" class="sales-inp" data-prod="t5" data-month="5" data-type="amt" placeholder="금액" onchange="saveSalesData(this)" min="0"></td>
+          <td class="sales-rate-cell" id="sales-rate-t5-5">-</td>
+        </tr>
+        <tr>
+          <td class="sales-month-lbl">6월</td>
+          <td><input type="number" class="sales-inp" data-prod="t5" data-month="6" data-type="qty" placeholder="수량" onchange="saveSalesData(this)" min="0"></td>
+          <td><input type="number" class="sales-inp" data-prod="t5" data-month="6" data-type="amt" placeholder="금액" onchange="saveSalesData(this)" min="0"></td>
+          <td class="sales-rate-cell" id="sales-rate-t5-6">-</td>
+        </tr>
+        <tr>
+          <td class="sales-month-lbl">7월</td>
+          <td><input type="number" class="sales-inp" data-prod="t5" data-month="7" data-type="qty" placeholder="수량" onchange="saveSalesData(this)" min="0"></td>
+          <td><input type="number" class="sales-inp" data-prod="t5" data-month="7" data-type="amt" placeholder="금액" onchange="saveSalesData(this)" min="0"></td>
+          <td class="sales-rate-cell" id="sales-rate-t5-7">-</td>
+        </tr>
+        <tr>
+          <td class="sales-month-lbl">8월</td>
+          <td><input type="number" class="sales-inp" data-prod="t5" data-month="8" data-type="qty" placeholder="수량" onchange="saveSalesData(this)" min="0"></td>
+          <td><input type="number" class="sales-inp" data-prod="t5" data-month="8" data-type="amt" placeholder="금액" onchange="saveSalesData(this)" min="0"></td>
+          <td class="sales-rate-cell" id="sales-rate-t5-8">-</td>
+        </tr>
+        <tr>
+          <td class="sales-month-lbl">9월</td>
+          <td><input type="number" class="sales-inp" data-prod="t5" data-month="9" data-type="qty" placeholder="수량" onchange="saveSalesData(this)" min="0"></td>
+          <td><input type="number" class="sales-inp" data-prod="t5" data-month="9" data-type="amt" placeholder="금액" onchange="saveSalesData(this)" min="0"></td>
+          <td class="sales-rate-cell" id="sales-rate-t5-9">-</td>
+        </tr>
+        <tr>
+          <td class="sales-month-lbl">10월</td>
+          <td><input type="number" class="sales-inp" data-prod="t5" data-month="10" data-type="qty" placeholder="수량" onchange="saveSalesData(this)" min="0"></td>
+          <td><input type="number" class="sales-inp" data-prod="t5" data-month="10" data-type="amt" placeholder="금액" onchange="saveSalesData(this)" min="0"></td>
+          <td class="sales-rate-cell" id="sales-rate-t5-10">-</td>
+        </tr>
+        <tr>
+          <td class="sales-month-lbl">11월</td>
+          <td><input type="number" class="sales-inp" data-prod="t5" data-month="11" data-type="qty" placeholder="수량" onchange="saveSalesData(this)" min="0"></td>
+          <td><input type="number" class="sales-inp" data-prod="t5" data-month="11" data-type="amt" placeholder="금액" onchange="saveSalesData(this)" min="0"></td>
+          <td class="sales-rate-cell" id="sales-rate-t5-11">-</td>
+        </tr>
+        <tr>
+          <td class="sales-month-lbl">12월</td>
+          <td><input type="number" class="sales-inp" data-prod="t5" data-month="12" data-type="qty" placeholder="수량" onchange="saveSalesData(this)" min="0"></td>
+          <td><input type="number" class="sales-inp" data-prod="t5" data-month="12" data-type="amt" placeholder="금액" onchange="saveSalesData(this)" min="0"></td>
+          <td class="sales-rate-cell" id="sales-rate-t5-12">-</td>
+        </tr></tbody>
+    </table>
+    <div class="sales-summary">
+      <span style="font-size:12px;font-weight:700">연간 목표: <strong style="color:var(--amber)">3600만원</strong></span>
+      <span style="font-size:12px;color:var(--text2)">누적: <strong id="sales-total-t5" style="color:var(--teal)">0만원</strong></span>
+      <span style="font-size:12px;color:var(--text2)">달성률: <strong id="sales-pct-t5" style="color:var(--green)">0%</strong></span>
+      <input type="number" id="sales-target-t5" class="sales-inp" placeholder="목표수정" style="width:95px;margin-left:auto" value="3600" onchange="updateSalesTarget('t5',this.value)">
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- TAB 6: OKR 체커 -->
+<!-- ============================================================ -->
+<div class="panel" id="t6">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px">
+    <div class="st" style="margin-bottom:0;border-bottom:none">2026 OKR 체커 <span style="font-size:11px;font-weight:400;letter-spacing:0;text-transform:none;color:var(--text3)">(클릭 → 달성 체크 + 코멘트)</span></div>
+    <button class="btn-reset" onclick="resetOKR()">🔄 전체 초기화</button>
+  </div>
+
+  <div id="okr-progress-summary" class="mb"></div>
+
+  <!-- O1 -->
+  <div class="obj">
+    <div class="obj-hd" onclick="toggleObj('o1')">
+      <div class="on-num" style="background:#c47b2e">O1</div>
+      <div class="obj-inf">
+        <div class="obj-tit">항암모자가발 핵심 매출 확보</div>
+        <div class="obj-pt" id="o1-pt">KR 0/3 달성</div>
+      </div>
+      <div class="pbar-s"><div class="pbar-sf" id="o1-pb" style="width:0%;background:#c47b2e"></div></div>
+      <div class="exp" id="o1-exp">▶</div>
+    </div>
+    <div class="krs" id="o1-krs">
+      <div class="kri" data-id="okr-o1k1" onclick="toggleOKR(this)">
+        <div class="kck"></div><div class="kl2">KR1: 항암모자가발 상세페이지 제작 완료<div class="kr-comment" id="c-okr-o1k1"></div></div><div class="km">5/31</div>
+      </div>
+      <div class="kri done" data-id="okr-o1k2" onclick="toggleOKR(this)">
+        <div class="kck">✓</div><div class="kl2">KR2: 쿠팡·네이버 스마트스토어 입점 완료<div class="kr-comment" id="c-okr-o1k2"></div></div><div class="km">완료</div>
+      </div>
+      <div class="kri" data-id="okr-o1k3" onclick="toggleOKR(this)">
+        <div class="kck"></div><div class="kl2">KR3: Q2~Q3 판매 본격화 및 월 매출 증가 달성<div class="kr-comment" id="c-okr-o1k3"></div></div><div class="km">Q2~Q3</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- O2 -->
+  <div class="obj">
+    <div class="obj-hd" onclick="toggleObj('o2')">
+      <div class="on-num" style="background:#2c6fad">O2</div>
+      <div class="obj-inf">
+        <div class="obj-tit">B2B 파트너십 기반 구축</div>
+        <div class="obj-pt" id="o2-pt">KR 0/3 달성</div>
+      </div>
+      <div class="pbar-s"><div class="pbar-sf" id="o2-pb" style="width:0%;background:#2c6fad"></div></div>
+      <div class="exp" id="o2-exp">▶</div>
+    </div>
+    <div class="krs" id="o2-krs">
+      <div class="kri" data-id="okr-o2k1" onclick="toggleOKR(this)">
+        <div class="kck"></div><div class="kl2">KR1: B2B 파트너 10곳 확보<div class="kr-comment" id="c-okr-o2k1"></div></div><div class="km">8/31</div>
+      </div>
+      <div class="kri" data-id="okr-o2k2" onclick="toggleOKR(this)">
+        <div class="kck"></div><div class="kl2">KR2: 헤어샵 B2B 온라인몰 기획 완료<div class="kr-comment" id="c-okr-o2k2"></div></div><div class="km">중반기</div>
+      </div>
+      <div class="kri" data-id="okr-o2k3" onclick="toggleOKR(this)">
+        <div class="kck"></div><div class="kl2">KR3: 파트너사 소개서 제작 및 배포<div class="kr-comment" id="c-okr-o2k3"></div></div><div class="km">즉시</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- O3 -->
+  <div class="obj">
+    <div class="obj-hd" onclick="toggleObj('o3')">
+      <div class="on-num" style="background:#2b7a6e">O3</div>
+      <div class="obj-inf">
+        <div class="obj-tit">제품 포트폴리오 확장</div>
+        <div class="obj-pt" id="o3-pt">KR 0/3 달성</div>
+      </div>
+      <div class="pbar-s"><div class="pbar-sf" id="o3-pb" style="width:0%;background:#2b7a6e"></div></div>
+      <div class="exp" id="o3-exp">▶</div>
+    </div>
+    <div class="krs" id="o3-krs">
+      <div class="kri done" data-id="okr-o3k1" onclick="toggleOKR(this)">
+        <div class="kck">✓</div><div class="kl2">KR1: 맞춤항암모자가발 기획 완료<div class="kr-comment" id="c-okr-o3k1"></div></div><div class="km">완료</div>
+      </div>
+      <div class="kri" data-id="okr-o3k2" onclick="toggleOKR(this)">
+        <div class="kck"></div><div class="kl2">KR2: 가발스탠드 양산 및 10월 출시<div class="kr-comment" id="c-okr-o3k2"></div></div><div class="km">10월</div>
+      </div>
+      <div class="kri" data-id="okr-o3k3" onclick="toggleOKR(this)">
+        <div class="kck"></div><div class="kl2">KR3: 클립류·부자재 유통 채널 기획<div class="kr-comment" id="c-okr-o3k3"></div></div><div class="km">하반기</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- O4 -->
+  <div class="obj">
+    <div class="obj-hd" onclick="toggleObj('o4')">
+      <div class="on-num" style="background:#95928d">O4</div>
+      <div class="obj-inf">
+        <div class="obj-tit">운영 디지털화 기반 구축</div>
+        <div class="obj-pt" id="o4-pt">KR 0/3 달성</div>
+      </div>
+      <div class="pbar-s"><div class="pbar-sf" id="o4-pb" style="width:0%;background:#95928d"></div></div>
+      <div class="exp" id="o4-exp">▶</div>
+    </div>
+    <div class="krs" id="o4-krs">
+      <div class="kri" data-id="okr-o4k1" onclick="toggleOKR(this)">
+        <div class="kck"></div><div class="kl2">KR1: 풀필먼트 연동 완료<div class="kr-comment" id="c-okr-o4k1"></div></div><div class="km">8/31</div>
+      </div>
+      <div class="kri" data-id="okr-o4k2" onclick="toggleOKR(this)">
+        <div class="kck"></div><div class="kl2">KR2: 디지털 작업지시서 구축 완료<div class="kr-comment" id="c-okr-o4k2"></div></div><div class="km">하반기</div>
+      </div>
+      <div class="kri" data-id="okr-o4k3" onclick="toggleOKR(this)">
+        <div class="kck"></div><div class="kl2">KR3: 고객 두상·모발 데이터 양식 구축<div class="kr-comment" id="c-okr-o4k3"></div></div><div class="km">하반기</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- O5 -->
+  <div class="obj">
+    <div class="obj-hd" onclick="toggleObj('o5')">
+      <div class="on-num" style="background:#7a4faf">O5</div>
+      <div class="obj-inf">
+        <div class="obj-tit">IP · 기술 자산 강화</div>
+        <div class="obj-pt" id="o5-pt">KR 0/3 달성</div>
+      </div>
+      <div class="pbar-s"><div class="pbar-sf" id="o5-pb" style="width:0%;background:#7a4faf"></div></div>
+      <div class="exp" id="o5-exp">▶</div>
+    </div>
+    <div class="krs" id="o5-krs">
+      <div class="kri done" data-id="okr-o5k1" onclick="toggleOKR(this)">
+        <div class="kck">✓</div><div class="kl2">KR1: 3D 맞춤가발 제조 특허 등록 완료<div class="kr-comment" id="c-okr-o5k1"></div></div><div class="km">완료</div>
+      </div>
+      <div class="kri" data-id="okr-o5k2" onclick="toggleOKR(this)">
+        <div class="kck"></div><div class="kl2">KR2: 자가모발 데이터 기반 특허 출원 및 등록<div class="kr-comment" id="c-okr-o5k2"></div></div><div class="km">심사중</div>
+      </div>
+      <div class="kri done" data-id="okr-o5k3" onclick="toggleOKR(this)">
+        <div class="kck">✓</div><div class="kl2">KR3: 마드리드 국제상표 3개국 등록 완료 (미·영·일)<div class="kr-comment" id="c-okr-o5k3"></div></div><div class="km">완료</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- O6 -->
+  <div class="obj">
+    <div class="obj-hd" onclick="toggleObj('o6')">
+      <div class="on-num" style="background:#c0392b">O6</div>
+      <div class="obj-inf">
+        <div class="obj-tit">자금 확보 및 지원사업</div>
+        <div class="obj-pt" id="o6-pt">KR 0/3 달성</div>
+      </div>
+      <div class="pbar-s"><div class="pbar-sf" id="o6-pb" style="width:0%;background:#c0392b"></div></div>
+      <div class="exp" id="o6-exp">▶</div>
+    </div>
+    <div class="krs" id="o6-krs">
+      <div class="kri" data-id="okr-o6k1" onclick="toggleOKR(this)">
+        <div class="kck"></div><div class="kl2">KR1: 중진공 청년전용창업자금 융자 확보<div class="kr-comment" id="c-okr-o6k1"></div></div><div class="km">5/22</div>
+      </div>
+      <div class="kri fail" data-id="okr-o6k2">
+        <div class="kck">✗</div><div class="kl2">KR2: 소셜임팩트 우수기업 인증 — 2차 심사 탈락</div><div class="km">탈락</div>
+      </div>
+      <div class="kri" data-id="okr-o6k3" onclick="toggleOKR(this)">
+        <div class="kck"></div><div class="kl2">KR3: 제조 All in One 지원사업 선정<div class="kr-comment" id="c-okr-o6k3"></div></div><div class="km">2026</div>
+      </div>
+    </div>
+  </div>
+
+  <div style="text-align:right;margin-top:6px">
+    <span style="font-size:11px;color:var(--text3)">* 달성 체크 시 코멘트 남기기 가능 · 이 기기에 자동 저장됩니다</span>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- TAB 7: KPI 트래커 -->
+<!-- ============================================================ -->
+<div class="panel" id="t7">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px">
+    <div class="st" style="margin-bottom:0;border-bottom:none">KPI 달성 트래커 <span style="font-size:11px;font-weight:400;letter-spacing:0;text-transform:none;color:var(--text3)">(버튼 클릭 → 미달성→진행중→달성)</span></div>
+    <button class="btn-reset" onclick="resetKPI()">🔄 전체 초기화</button>
+  </div>
+  <div class="g3" id="kpi-grid"></div>
+  <div style="text-align:right;margin-top:4px">
+    <span style="font-size:11px;color:var(--text3)" id="kpi-last-update"></span>
+  </div>
+</div>
+
+<script>
+/* ================================================================
+   STORAGE
+================================================================ */
+const S = {
+  get(k){ try{return JSON.parse(localStorage.getItem(k)||'{}')}catch{return{}} },
+  set(k,v){ try{localStorage.setItem(k,JSON.stringify(v))}catch{} },
+  getArr(k){ try{return JSON.parse(localStorage.getItem(k)||'[]')}catch{return[]} },
+  setArr(k,v){ try{localStorage.setItem(k,JSON.stringify(v))}catch{} }
+};
+
+/* ================================================================
+   MEMBER
+================================================================ */
+function getMember(){ return localStorage.getItem('tanco_member')||''; }
+function saveMember(){
+  const v = document.getElementById('member-input').value.trim();
+  if(!v){ alert('이름을 입력해주세요'); return; }
+  localStorage.setItem('tanco_member', v);
+  updateMemberBadge();
+  closeModal('modal-member');
+}
+function updateMemberBadge(){
+  const m = getMember();
+  const el = document.getElementById('member-badge');
+  if(el) el.textContent = m ? '👤 '+m : '👤 이름 설정';
+}
+function checkFirstVisit(){
+  if(!getMember()) openModal('modal-member');
+  updateMemberBadge();
+}
+
+/* ================================================================
+   MODALS
+================================================================ */
+function openModal(id){
+  document.getElementById(id).classList.add('open');
+  if(id==='modal-settings'){
+    document.getElementById('settings-member').value = getMember();
+    document.getElementById('settings-gas-url').value = localStorage.getItem('tanco_gas_url')||'';
+  }
+}
+function closeModal(id){ document.getElementById(id).classList.remove('open'); }
+function saveSettings(){
+  const m = document.getElementById('settings-member').value.trim();
+  const u = document.getElementById('settings-gas-url').value.trim();
+  if(m) localStorage.setItem('tanco_member', m);
+  if(u) localStorage.setItem('tanco_gas_url', u);
+  else localStorage.removeItem('tanco_gas_url');
+  updateMemberBadge();
+  updateSyncStatus(u ? 'wait' : 'off', u ? '연결됨' : '연동 없음');
+  closeModal('modal-settings');
+}
+
+/* ================================================================
+   COMMENT MODAL (pending action queue)
+================================================================ */
+let _pendingAction = null;
+
+function openCommentModal(title, sub, onConfirm){
+  _pendingAction = onConfirm;
+  document.getElementById('comment-modal-title').textContent = title;
+  document.getElementById('comment-modal-sub').textContent = sub;
+  document.getElementById('comment-input').value = '';
+  openModal('modal-comment');
+  setTimeout(()=>document.getElementById('comment-input').focus(), 200);
+}
+function submitComment(){
+  const comment = document.getElementById('comment-input').value.trim();
+  closeModal('modal-comment');
+  if(_pendingAction){ _pendingAction(comment); _pendingAction=null; }
+}
+function cancelComment(){
+  closeModal('modal-comment');
+  _pendingAction = null;
+}
+
+/* ================================================================
+   ACTIVITY LOG
+================================================================ */
+const LOG_KEY = 'tanco_log';
+const LOG_MAX = 30;
+
+function addLog(type, title, comment){
+  const log = S.getArr(LOG_KEY);
+  const now = new Date();
+  const ts = now.getFullYear()+'.'+(now.getMonth()+1).toString().padStart(2,'0')+'.'+now.getDate().toString().padStart(2,'0')+' '+now.getHours().toString().padStart(2,'0')+':'+now.getMinutes().toString().padStart(2,'0');
+  log.unshift({ type, title, comment: comment||'', member: getMember()||'(익명)', ts });
+  if(log.length > LOG_MAX) log.pop();
+  S.setArr(LOG_KEY, log);
+  renderActivityLog();
+  syncToSheet({ type, title, comment: comment||'', member: getMember()||'(익명)', ts });
+}
+
+function renderActivityLog(){
+  const log = S.getArr(LOG_KEY);
+  const el = document.getElementById('activity-log-preview');
+  if(!el) return;
+  if(!log.length){ el.innerHTML='<div class="log-empty">아직 기록이 없습니다. OKR·KPI를 체크해보세요!</div>'; return; }
+  const recent = log.slice(0,8);
+  el.innerHTML = recent.map(l=>{
+    const dotCls = l.type==='okr'?'log-dot-g':l.type==='kpi'?'log-dot-a':'log-dot-b';
+    const commentHtml = l.comment ? `<div class="log-comment">"${l.comment}"</div>` : '';
+    return `<div class="log-item">
+      <div class="log-dot ${dotCls}"></div>
+      <div style="flex:1">
+        <div>${l.title}</div>
+        ${commentHtml}
+        <div class="log-meta">👤 ${l.member} · ${l.ts}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function clearLog(){
+  if(!confirm('활동 로그를 모두 삭제할까요?')) return;
+  S.setArr(LOG_KEY, []);
+  renderActivityLog();
+}
+
+function openActivityLog(){
+  const log = S.getArr(LOG_KEY);
+  if(!log.length){ alert('아직 활동 기록이 없습니다.'); return; }
+  const html = log.map(l=>{
+    const commentStr = l.comment ? `\n  코멘트: "${l.comment}"` : '';
+    return `[${l.ts}] ${l.member} · ${l.title}${commentStr}`;
+  }).join('\n\n');
+  const w = window.open('','_blank','width=500,height=500');
+  w.document.write(`<pre style="font-family:sans-serif;font-size:13px;padding:20px;line-height:1.7;color:#2d2a25;background:#f5f0e8;min-height:100vh">탠코 활동 로그\n${'='.repeat(40)}\n\n${html}</pre>`);
+}
+
+/* ================================================================
+   GOOGLE SHEETS SYNC
+================================================================ */
+function getSyncURL(){ return localStorage.getItem('tanco_gas_url')||''; }
+
+function updateSyncStatus(state, text){
+  const el = document.getElementById('sync-status');
+  if(!el) return;
+  el.className = 'sync-'+state;
+  el.innerHTML = `<span class="sync-dot"></span><span class="sync-label">${text}</span>`;
+}
+
+async function syncToSheet(data){
+  const url = getSyncURL();
+  if(!url) return;
+  updateSyncStatus('wait','동기화 중...');
+  try{
+    await fetch(url, {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify(data),
+      mode:'no-cors'
+    });
+    updateSyncStatus('ok','동기화 완료');
+    setTimeout(()=>updateSyncStatus('ok','연결됨'), 3000);
+  } catch(e){
+    updateSyncStatus('err','동기화 실패');
+    setTimeout(()=>updateSyncStatus('wait','재시도 대기'), 3000);
+  }
+}
+
+async function syncAllToSheet(){
+  const url = getSyncURL();
+  if(!url){ alert('Settings에서 Google Apps Script URL을 먼저 입력해주세요.'); openModal('modal-settings'); return; }
+  updateSyncStatus('wait','전체 동기화 중...');
+  const payload = {
+    type:'full_sync',
+    ts: new Date().toISOString(),
+    member: getMember()||'(익명)',
+    okr: S.get('tanco_okr'),
+    kpi: S.get('tanco_kpi'),
+    tasks: S.get('tanco_prod'),
+    sales: S.get('tanco_sales'),
+    comments: S.get('tanco_comments')
+  };
+  try{
+    await fetch(url, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload), mode:'no-cors' });
+    updateSyncStatus('ok','동기화 완료');
+  }catch(e){
+    updateSyncStatus('err','동기화 실패');
+  }
+}
+
+/* ================================================================
+   TABS
+================================================================ */
+function switchTab(id, btn){
+  document.querySelectorAll('.tb').forEach(b=>b.classList.remove('on'));
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('on'));
+  btn.classList.add('on');
+  document.getElementById(id).classList.add('on');
+  if(id==='t6') renderOKRSummary();
+  if(id==='t7') renderKPIGrid();
+}
+
+/* ================================================================
+   TASK CHECKBOXES
+================================================================ */
+function toggleTask(el, storeKey){
+  const id = el.dataset.id;
+  const state = S.get(storeKey);
+  state[id] = !state[id];
+  S.set(storeKey, state);
+  applyTaskState(el, state[id]);
+}
+function applyTaskState(el, done){
+  el.classList.toggle('done', !!done);
+  el.querySelector('.tck').textContent = done ? '✓' : '';
+}
+function initTasks(){
+  const state = S.get('tanco_prod');
+  document.querySelectorAll('.ti[data-store="tanco_prod"]').forEach(el=>{
+    applyTaskState(el, !!state[el.dataset.id]);
+  });
+}
+
+/* ================================================================
+   OKR
+================================================================ */
+function toggleObj(id){
+  const krs = document.getElementById(id+'-krs');
+  const exp = document.getElementById(id+'-exp');
+  krs.classList.toggle('open');
+  exp.classList.toggle('open');
+}
+
+function toggleOKR(el){
+  if(el.classList.contains('fail')) return;
+  const id = el.dataset.id;
+  const state = S.get('tanco_okr');
+  const willBeDone = !el.classList.contains('done');
+  const krText = el.querySelector('.kl2').firstChild.textContent.trim().substring(0,40);
+  const actionTitle = (willBeDone?'✅ OKR 달성':'↩ OKR 취소')+' · '+krText+'...';
+  
+  openCommentModal(
+    willBeDone ? '✅ KR 달성 체크' : '↩ 달성 취소',
+    willBeDone ? krText : '달성 취소 사유를 남겨주세요 (선택)',
+    (comment)=>{
+      state[id] = willBeDone;
+      S.set('tanco_okr', state);
+      el.classList.toggle('done', willBeDone);
+      el.querySelector('.kck').textContent = willBeDone ? '✓' : '';
+      
+      // Save + show comment
+      const comments = S.get('tanco_comments');
+      if(comment){ comments[id] = {text:comment, member:getMember(), ts:new Date().toISOString()}; S.set('tanco_comments', comments); }
+      renderOKRComment(id);
+      
+      updateOKRObjective(id.slice(4,6));
+      renderOKRSummary();
+      addLog('okr', actionTitle, comment);
+    }
+  );
+}
+
+function renderOKRComment(id){
+  const el = document.getElementById('c-'+id);
+  if(!el) return;
+  const comments = S.get('tanco_comments');
+  const c = comments[id];
+  if(c && c.text){ el.textContent = '💬 '+c.text+' ('+c.member+')'; }
+  else { el.textContent = ''; }
+}
+
+function updateOKRObjective(oId){
+  const krs = document.querySelectorAll('.kri[data-id^="okr-'+oId+'"]');
+  const state = S.get('tanco_okr');
+  let done=0, total=0;
+  krs.forEach(kr=>{
+    if(!kr.classList.contains('fail')){
+      total++;
+      const id = kr.dataset.id;
+      if(state[id]||kr.classList.contains('done')) done++;
+    }
+  });
+  const pct = total>0?Math.round(done/total*100):0;
+  const pt = document.getElementById(oId+'-pt');
+  const pb = document.getElementById(oId+'-pb');
+  if(pt) pt.textContent = 'KR '+done+'/'+total+' 달성';
+  if(pb) pb.style.width = pct+'%';
+}
+
+function initOKR(){
+  const state = S.get('tanco_okr');
+  document.querySelectorAll('.kri[data-id]').forEach(el=>{
+    const id = el.dataset.id;
+    if(el.classList.contains('fail')) return;
+    if(state[id]!==undefined){
+      el.classList.toggle('done', !!state[id]);
+      el.querySelector('.kck').textContent = state[id]?'✓':'';
+    } else if(el.classList.contains('done')){
+      state[id]=true;
+    }
+    renderOKRComment(id);
+  });
+  S.set('tanco_okr', state);
+  ['o1','o2','o3','o4','o5','o6'].forEach(updateOKRObjective);
+}
+
+function resetOKR(){
+  if(!confirm('모든 OKR 체크를 초기화할까요?')) return;
+  S.set('tanco_okr', {});
+  S.set('tanco_comments', {});
+  document.querySelectorAll('.kri:not(.fail)').forEach(el=>{
+    el.classList.remove('done');
+    el.querySelector('.kck').textContent='';
+  });
+  document.querySelectorAll('.kr-comment').forEach(el=>el.textContent='');
+  ['o1','o2','o3','o4','o5','o6'].forEach(updateOKRObjective);
+  renderOKRSummary();
+}
+
+function renderOKRSummary(){
+  const state = S.get('tanco_okr');
+  const allKRs = document.querySelectorAll('.kri:not(.fail)[data-id]');
+  let total=0, done=0;
+  allKRs.forEach(el=>{
+    total++;
+    const id=el.dataset.id;
+    if(state[id]||el.classList.contains('done')) done++;
+  });
+  const pct=total>0?Math.round(done/total*100):0;
+  const el=document.getElementById('okr-progress-summary');
+  if(!el) return;
+  el.innerHTML=`<div class="prog-sum">
+    <div class="prog-label">전체 OKR 달성률</div>
+    <div class="prog-bar-bg"><div class="prog-bar-f" style="width:${pct}%"></div></div>
+    <div class="prog-pct">${pct}%</div>
+    <div style="font-size:12px;color:var(--text3);margin-left:8px">${done}/${total} KR</div>
+  </div>`;
+}
+
+/* ================================================================
+   KPI TRACKER
+================================================================ */
+const KPI_DATA = [
+  {id:'k1',name:'2026 누적 매출',cur:'1,602만원',tgt:'3억(보수) / 10억(공격)',pct:5},
+  {id:'k2',name:'Q2 매출 목표',cur:'375만원',tgt:'월 3,890만원 이상 필요',pct:10},
+  {id:'k3',name:'항암모자가발 상세페이지',cur:'제작 중',tgt:'2026.05.31 오픈',pct:60},
+  {id:'k4',name:'B2B 파트너 확보',cur:'0곳',tgt:'10곳 (2026.08.31)',pct:0},
+  {id:'k5',name:'맞춤가발 외주인력',cur:'0명',tgt:'1명 이상 (2026.07.31)',pct:0},
+  {id:'k6',name:'풀필먼트 연동',cur:'미완료',tgt:'2026.08.31 완료',pct:0},
+  {id:'k7',name:'가발스탠드 출시',cur:'개발 중',tgt:'2026.10월 출시',pct:20},
+  {id:'k8',name:'자가모발 특허 등록',cur:'출원/심사중',tgt:'등록 완료',pct:50},
+  {id:'k9',name:'자금 확보 (청년창업자금)',cur:'심사중',tgt:'선정 완료',pct:40},
+];
+const S_LABELS=['❌ 미달성','🔄 진행중','✅ 달성'];
+const S_CLASSES=['s0','s1','s2'];
+
+function renderKPIGrid(){
+  const state=S.get('tanco_kpi');
+  const grid=document.getElementById('kpi-grid');
+  if(!grid) return;
+  grid.innerHTML=KPI_DATA.map(k=>{
+    const s=state[k.id]||0;
+    const pbarColor=s===2?'var(--green)':s===1?'var(--amber)':'var(--gray)';
+    const comments=S.get('tanco_comments');
+    const c=comments['kpi-'+k.id];
+    const commentHtml=c&&c.text?`<div style="font-size:10px;color:var(--blue);font-style:italic;margin:4px 0">💬 ${c.text}</div>`:'';
+    return `<div class="kpt-card">
+      <div class="kpt-name">${k.name}</div>
+      <div style="font-size:19px;font-weight:800;color:var(--text)">${k.cur}</div>
+      <div style="font-size:11px;color:var(--text3);margin-top:2px">목표: ${k.tgt}</div>
+      ${commentHtml}
+      <div class="kpt-pbar"><div class="kpt-pbf" style="width:${k.pct}%;background:${pbarColor}"></div></div>
+      <button class="kpt-tog ${S_CLASSES[s]}" onclick="toggleKPI('${k.id}',this)">${S_LABELS[s]}</button>
+    </div>`;
+  }).join('');
+}
+
+function toggleKPI(id, btn){
+  const state=S.get('tanco_kpi');
+  const cur=state[id]||0;
+  const next=(cur+1)%3;
+  const kpi=KPI_DATA.find(k=>k.id===id);
+  
+  openCommentModal(
+    S_LABELS[next]+' 변경',
+    kpi.name+' 상태를 변경합니다',
+    (comment)=>{
+      state[id]=next;
+      S.set('tanco_kpi',state);
+      if(comment){
+        const comments=S.get('tanco_comments');
+        comments['kpi-'+id]={text:comment,member:getMember(),ts:new Date().toISOString()};
+        S.set('tanco_comments',comments);
+      }
+      renderKPIGrid();
+      addLog('kpi','📊 '+kpi.name+' → '+S_LABELS[next], comment);
+    }
+  );
+}
+
+function resetKPI(){
+  if(!confirm('모든 KPI 상태를 초기화할까요?')) return;
+  S.set('tanco_kpi',{});
+  renderKPIGrid();
+}
+
+/* ================================================================
+   MONTHLY SALES
+================================================================ */
+const SALES_TARGETS = { t2:6000, t3:2400, t4:800, t5:3600 };
+
+function saveSalesData(inp){
+  const prod=inp.dataset.prod;
+  const month=inp.dataset.month;
+  const type=inp.dataset.type;
+  const val=parseFloat(inp.value)||0;
+  const sales=S.get('tanco_sales');
+  if(!sales[prod]) sales[prod]={};
+  if(!sales[prod][month]) sales[prod][month]={};
+  sales[prod][month][type]=val;
+  S.set('tanco_sales', sales);
+  updateSalesSummary(prod);
+}
+
+function updateSalesTarget(prod, val){
+  SALES_TARGETS[prod]=parseFloat(val)||SALES_TARGETS[prod];
+  updateSalesSummary(prod);
+}
+
+function updateSalesSummary(prod){
+  const sales=S.get('tanco_sales');
+  const prodData=sales[prod]||{};
+  let total=0;
+  const target=SALES_TARGETS[prod]||1;
+  for(let m=1;m<=12;m++){
+    const md=prodData[m]||{};
+    const amt=md.amt||0;
+    total+=amt;
+    const rateEl=document.getElementById('sales-rate-'+prod+'-'+m);
+    if(rateEl){
+      const monthTarget=target/12;
+      if(amt>0){
+        const pct=Math.round(amt/monthTarget*100);
+        const color=pct>=100?'var(--green)':pct>=50?'var(--amber)':'var(--red)';
+        rateEl.innerHTML=`<span style="color:${color};font-weight:700">${pct}%</span>`;
+      } else {
+        rateEl.textContent='-';
+      }
+    }
+  }
+  const totalEl=document.getElementById('sales-total-'+prod);
+  const pctEl=document.getElementById('sales-pct-'+prod);
+  if(totalEl) totalEl.textContent=total.toFixed(1)+'만원';
+  if(pctEl){
+    const p=Math.round(total/target*100);
+    pctEl.textContent=p+'%';
+    pctEl.style.color=p>=100?'var(--green)':p>=50?'var(--amber)':'var(--red)';
+  }
+}
+
+function initSales(){
+  const sales=S.get('tanco_sales');
+  ['t2','t3','t4','t5'].forEach(prod=>{
+    const prodData=sales[prod]||{};
+    for(let m=1;m<=12;m++){
+      const md=prodData[m]||{};
+      const qtyInp=document.querySelector(`input[data-prod="${prod}"][data-month="${m}"][data-type="qty"]`);
+      const amtInp=document.querySelector(`input[data-prod="${prod}"][data-month="${m}"][data-type="amt"]`);
+      if(qtyInp&&md.qty) qtyInp.value=md.qty;
+      if(amtInp&&md.amt) amtInp.value=md.amt;
+    }
+    updateSalesSummary(prod);
+  });
+}
+
+/* ================================================================
+   CHARTS
+================================================================ */
+function initCharts(){
+  const rc=document.getElementById('revChart');
+  if(rc){
+    new Chart(rc.getContext('2d'),{
+      type:'bar',
+      data:{
+        labels:['1월','2월','3월','4월','5월 실적','5월 예정'],
+        datasets:[{
+          label:'매출(만원)',
+          data:[304.9,138.6,783.3,134.5,240.3,300],
+          backgroundColor:['rgba(196,123,46,.85)','rgba(196,123,46,.85)','rgba(196,123,46,.85)','rgba(196,123,46,.85)','rgba(43,122,110,.85)','rgba(43,122,110,.35)'],
+          borderColor:['#c47b2e','#c47b2e','#c47b2e','#c47b2e','#2b7a6e','#2b7a6e'],
+          borderWidth:1,borderRadius:4
+        }]
+      },
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>'  '+c.parsed.y.toLocaleString()+'만원'}}},
+        scales:{x:{grid:{display:false},ticks:{font:{size:10},color:'#9a948e'}},y:{grid:{color:'#f0ece6'},ticks:{font:{size:10},color:'#9a948e',callback:v=>v+'만'}}}}
+    });
+  }
+  const pc=document.getElementById('prodChart');
+  if(pc){
+    new Chart(pc.getContext('2d'),{
+      type:'doughnut',
+      data:{
+        labels:['항암모자가발','B2B 납품','맞춤가발','위그라이너/비니','가발망/소모품','기타'],
+        datasets:[{data:[35.8,19.7,14.9,10.2,9.4,10.0],backgroundColor:['#c47b2e','#2b7a6e','#2c6fad','#7a4faf','#e8a040','#95928d'],borderColor:'#fff',borderWidth:2,hoverOffset:8}]
+      },
+      options:{responsive:true,maintainAspectRatio:false,cutout:'62%',plugins:{legend:{position:'bottom',labels:{font:{size:11},color:'#6b6560',boxWidth:12,padding:8}},tooltip:{callbacks:{label:c=>'  '+c.label+': '+c.parsed+'%'}}}}
+    });
+  }
+}
+
+/* ================================================================
+   INIT
+================================================================ */
+document.addEventListener('DOMContentLoaded',()=>{
+  checkFirstVisit();
+  initTasks();
+  initOKR();
+  renderOKRSummary();
+  renderKPIGrid();
+  renderActivityLog();
+  initSales();
+  initCharts();
+  const gasUrl=getSyncURL();
+  if(gasUrl) updateSyncStatus('ok','연결됨');
+});
+
+// Close modal on backdrop click
+document.querySelectorAll && document.addEventListener('click', e=>{
+  if(e.target.classList.contains('modal-overlay')) {
+    if(e.target.id==='modal-comment') cancelComment();
+    else e.target.classList.remove('open');
+  }
+});
+</script>
+</body>
+</html>
